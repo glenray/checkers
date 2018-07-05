@@ -12,4 +12,4 @@ positions = {
 	"kingJump"		: '[FEN "B:W17,26,25:B23"]',
 }
 b = Board(positions['normalStart'])
-a = GUI(b, 'human', moron(b))
+a = GUI(b)
