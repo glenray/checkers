@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 import board
 from engines.moron import player as moron
 from engines.snap import player as snap
+import time
 
 '''
 GUI for checkers
@@ -13,7 +14,7 @@ Glen Pritchard 6/17/2018
 class GUI:
 	def __init__(self, board):
 		self.board = board
-		self.bPlayer = "human"
+		self.bPlayer = moron(self.board)
 		self.wPlayer = moron(self.board)
 		self.lightSqColor = "yellow"
 		self.darkSqColor = "blue"
@@ -157,24 +158,25 @@ class GUI:
 		# does this return the top level object??
 		return piece[-1]
 
-	def pieceAnamate(self, move):
+	def pieceAnimate(self, move):
 		start = move[0]
 		end = move[-1]
 		piece = self.returnPiece(start)
-
 		difY = (end[1]-start[1])*self.sqSize
 		difX = (end[0]-start[0])*self.sqSize
 
-		FdifY = ((end[1]-start[1])*self.sqSize)/5
-		FdifX = ((end[0]-start[0])*self.sqSize)/5
+		# move piece from starting square to landing square in increments
+		counter = 0
+		inc = 20
+		while counter < inc:
+			self.canvas.move(piece, difY/inc, difX/inc)
+			counter += 1
+			self.window.update()
+			time.sleep(.005)
 
-		print(FdifY, FdifX)
-
-		# move piece from starting square to landing square
-		self.canvas.move(piece, difY, difX)
 
 	def updateGUI(self, move):
-		self.pieceAnamate(move)
+		self.pieceAnimate(move)
 
 		# remove jumped pieces
 		if abs(move[0][0] - move[1][0]) == 2:
