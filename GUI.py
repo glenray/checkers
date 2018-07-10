@@ -157,16 +157,24 @@ class GUI:
 		# does this return the top level object??
 		return piece[-1]
 
-	def updateGUI(self, move):
+	def pieceAnamate(self, move):
 		start = move[0]
 		end = move[-1]
+		piece = self.returnPiece(start)
 
 		difY = (end[1]-start[1])*self.sqSize
 		difX = (end[0]-start[0])*self.sqSize
 
+		FdifY = ((end[1]-start[1])*self.sqSize)/5
+		FdifX = ((end[0]-start[0])*self.sqSize)/5
+
+		print(FdifY, FdifX)
+
 		# move piece from starting square to landing square
-		piece = self.returnPiece(start)
 		self.canvas.move(piece, difY, difX)
+
+	def updateGUI(self, move):
+		self.pieceAnamate(move)
 
 		# remove jumped pieces
 		if abs(move[0][0] - move[1][0]) == 2:
@@ -180,6 +188,7 @@ class GUI:
 				self.canvas.delete(piece)
 
  		# king promotion
+		end = move[-1]
 		if end[0] == 0 or end[0] == 7:
 			piece = self.returnPiece(end)
 			self.canvas.itemconfigure(piece, outline="white")
