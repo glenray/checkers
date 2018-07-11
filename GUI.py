@@ -2,10 +2,10 @@ from tkinter import *
 from tkinter import messagebox
 import tkinter as tk
 import tkinter.ttk as ttk
+import time
 import board
 from engines.moron import player as moron
 from engines.snap import player as snap
-import time
 
 '''
 GUI for checkers
@@ -75,6 +75,10 @@ class GUI:
 		)
 
 	def showSettingWindow(self):
+		def engChange(e):
+			print(players)
+			# self.bPlayer = blkCombo.get()(self.board)
+
 		import pkgutil
 		#  get list of engine names and prepend human as another option
 		players = [name for _, name, _ in pkgutil.iter_modules(['engines'])]
@@ -89,19 +93,26 @@ class GUI:
 
 		# elements
 		blkCombo = ttk.Combobox(s, values=players, state="readonly")
+		blkCombo.bind('<<ComboboxSelected>>', engChange)
 		blkCombo.current(0)
+
 		whtCombo = ttk.Combobox(s, values=players, state="readonly")
+		whtCombo.bind('<<ComboboxSelected>>', engChange)
 		whtCombo.current(0)
+
+		goBut = Button(s, text="Go!", command=self.newGame)
 
 		# Layout
 		Label(s, text="Black:").grid(row=0)
 		blkCombo.grid(row=0, column=1)
 		Label(s, text="White:").grid(row=1)
 		whtCombo.grid(row=1, column=1)
+		goBut.grid(row=2, column=1)
 
 		def close():
 			s.destroy()
 			self.window.focus_force()
+			self.makeMove()
 
 	def addMenuBar(self):
 		menubar = Menu(self.window)
@@ -147,7 +158,6 @@ class GUI:
 				self.updateMoveList(move)
 				self.updateGUI(move)
 
-
 	def returnPiece(self, coor):
 		piece = self.canvas.find_enclosed(
 			coor[1]*self.sqSize,
@@ -172,8 +182,7 @@ class GUI:
 			self.canvas.move(piece, difY/inc, difX/inc)
 			counter += 1
 			self.window.update()
-			time.sleep(.005)
-
+			time.sleep(.01)
 
 	def updateGUI(self, move):
 		self.pieceAnimate(move)
@@ -188,7 +197,6 @@ class GUI:
 				jX = int((sq[1]+move[i-1][1])/2)
 				piece = self.returnPiece((jY, jX))
 				self.canvas.delete(piece)
-
  		# king promotion
 		end = move[-1]
 		if end[0] == 0 or end[0] == 7:
@@ -227,11 +235,25 @@ class GUI:
 			xPos = 0
 			sqColor = flipColor[sqColor]
 
+	def newGame(self):
+		self.isRunning = False
+		self.board.reset()
+		self.canvas.delete('piece')
+		self.drawPieces()
+		self.isRunning = True
+		self.makeMove()
+
 	def bindEvents(self):
 		self.canvas.bind('<Button>', self.humanMove)
 		self.window.bind('i', self.info)
 		self.window.bind('s', lambda e: self.showSettingWindow())
 		self.window.bind('<Escape>', lambda e: self.window.destroy())
+		self.window.bind('e', lambda e: self.engines())
+
+	def engines(self):
+		import pkgutil
+		for name in pkgutil.iter_modules(['engines']):
+			print(name)
 
 	def info(self, pos):
 		for obj in self.canvas.find_all():
