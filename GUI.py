@@ -135,9 +135,10 @@ class GUI:
 		self.board.getLegalMoves()
 		if self.board.legalMoves == []:
 			whoWon = "Black Wins! " if self.board.onMove == -1 else "Red Wins! "
-			mess = messagebox.showinfo("Game Over", whoWon+"\nGame Over")
-			self.isRunning = False
-			return True
+			# mess = messagebox.showinfo("Game Over", whoWon+"\nGame Over")
+			# self.isRunning = False
+			# return True
+			self.newGame()
 
 	def makeMove(self):
 		while self.isRunning == True:
@@ -177,12 +178,12 @@ class GUI:
 
 		# move piece from starting square to landing square in increments
 		counter = 0
-		inc = 20
+		inc = 15
 		while counter < inc:
 			self.canvas.move(piece, difY/inc, difX/inc)
 			counter += 1
 			self.window.update()
-			time.sleep(.01)
+			time.sleep(.02)
 
 	def updateGUI(self, move):
 		self.pieceAnimate(move)
