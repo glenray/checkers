@@ -1,9 +1,9 @@
 import random
 
 '''
-Moron: The world's dumbest checkers bot. 
-Returns randomly selected move 
-Glen Pritchard -- 6/17/2018
+Material Girl: Select best move based on material after move 
+First attempt to pick a good move
+Glen Pritchard -- 5/31/2018
 '''
 class player():
 	def __init__(self, board):
