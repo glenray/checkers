@@ -6,6 +6,7 @@ import time
 import board
 from engines.moron import player as moron
 from engines.snap import player as snap
+from engines.materialGirl import player as materialGirl
 
 '''
 GUI for checkers
@@ -14,8 +15,8 @@ Glen Pritchard 6/17/2018
 class GUI:
 	def __init__(self, board):
 		self.board = board
-		self.bPlayer = moron(self.board)
-		self.wPlayer = moron(self.board)
+		self.bPlayer = materialGirl(self.board)
+		self.wPlayer = 'human'
 		self.lightSqColor = "yellow"
 		self.darkSqColor = "blue"
 		self.litSqColor = "gray75"
@@ -38,7 +39,7 @@ class GUI:
 		self.window.mainloop()
 
 	def windowSetup(self):
-		self.addWindow()		
+		self.addWindow()
 		self.addScrollBar()
 		self.addMoveListFrame()
 		self.addCanvas()

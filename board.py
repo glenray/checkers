@@ -115,7 +115,7 @@ class Board:
 					isPlace2Land = position[landingRow][landingCol] == 0
 					# is jump possible?
 					if isEnemy and isPlace2Land:
-						# if this is the first jump move detected, empty to move list 
+						# if this is the first jump move detected, empty the move list 
 						if self.isJump == False:
 							self.isJump = True
 							del self.legalMoves[:]

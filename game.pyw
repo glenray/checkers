@@ -11,5 +11,5 @@ positions = {
 	"multiJumpB"	: '[FEN "B:W18,26,27,25,11,19:B15K,14K"]',
 	"kingJump"		: '[FEN "B:W17,26,25:B23"]',
 }
-b = Board(positions['normalStart'])
+b = Board(positions['multiJumpB'])
 a = GUI(b)
