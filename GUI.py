@@ -15,8 +15,8 @@ Glen Pritchard 6/17/2018
 class GUI:
 	def __init__(self, board):
 		self.board = board
-		self.bPlayer = materialGirl(self.board)
-		self.wPlayer = 'human'
+		self.bPlayer = snap(self.board)
+		self.wPlayer = moron(self.board)
 		self.lightSqColor = "yellow"
 		self.darkSqColor = "blue"
 		self.litSqColor = "gray75"

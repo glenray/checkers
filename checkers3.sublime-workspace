@@ -109,6 +109,15 @@
 			}
 		},
 		{
+			"file": "engines/snap.py",
+			"settings":
+			{
+				"buffer_size": 441,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
 			"file": "engines/moron.py",
 			"settings":
 			{
@@ -120,16 +129,17 @@
 			"file": "engines/materialGirl.py",
 			"settings":
 			{
-				"buffer_size": 625,
+				"buffer_size": 647,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": ".gitignore",
+			"file": "tourn.py",
 			"settings":
 			{
-				"buffer_size": 1202,
+				"buffer_size": 560,
+				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
@@ -137,7 +147,7 @@
 			"file": "GUI.py",
 			"settings":
 			{
-				"buffer_size": 9883,
+				"buffer_size": 9885,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -270,10 +280,13 @@
 	"expanded_folders":
 	[
 		"/C/Users/Glen/Documents/python/checkers3",
+		"/C/Users/Glen/Documents/python/checkers3/__pycache__",
 		"/C/Users/Glen/Documents/python/checkers3/engines"
 	],
 	"file_history":
 	[
+		"/C/Users/Glen/Documents/python/checkers3/.gitignore",
+		"/C/Users/Glen/Documents/python/checkers3/.git/COMMIT_EDITMSG",
 		"/C/Users/Glen/Documents/BatchFiles/toggleHomeVPN.bat",
 		"/C/Users/Glen/Documents/EBundleViewer/Log/EBundleViewer.log",
 		"/C/Users/Glen/Documents/spamList.txt",
@@ -399,9 +412,7 @@
 		"/C/xampp/htdocs/slim/README.md",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/pncEMSite/sftp-config.json",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/pncEMSite/.htaccess",
-		"/C/Users/Glen.WS-04/Dropbox/Sublime/Projects/pncEMSite/pncEM.sublime-workspace",
-		"/C/Users/Glen.WS-04/Dropbox/Sublime/Projects/pncEMSite/pncEM.sublime-project",
-		"/C/Users/Glen/Dropbox/Sublime/Projects/pncEMSite/pncEM.sublime-project"
+		"/C/Users/Glen.WS-04/Dropbox/Sublime/Projects/pncEMSite/pncEM.sublime-workspace"
 	],
 	"find":
 	{
@@ -473,7 +484,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 4,
 			"sheets":
 			[
 				{
@@ -503,27 +514,27 @@
 							"word_wrap": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 256.0,
+						"translation.y": 193.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "engines/moron.py",
+					"file": "engines/snap.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 548,
+						"buffer_size": 441,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								548
+								352,
+								352
 							]
 						],
 						"settings":
@@ -543,19 +554,51 @@
 				},
 				{
 					"buffer": 2,
-					"file": "engines/materialGirl.py",
+					"file": "engines/moron.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 625,
+						"buffer_size": 548,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								415,
-								415
+								372,
+								398
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "engines/materialGirl.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 647,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								74,
+								74
 							]
 						],
 						"settings":
@@ -568,24 +611,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": ".gitignore",
-					"semi_transient": true,
+					"buffer": 4,
+					"file": "tourn.py",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1202,
+						"buffer_size": 560,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								203,
+								203
 							]
 						],
 						"settings":
@@ -593,7 +636,8 @@
 							"incomplete_sync": null,
 							"remote_loading": false,
 							"synced": false,
-							"syntax": "Packages/Git Formats/Git Ignore.sublime-syntax"
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -603,20 +647,20 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 5,
 					"file": "GUI.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9883,
+						"buffer_size": 9885,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								403,
-								403
+								430,
+								430
 							]
 						],
 						"settings":
@@ -627,15 +671,15 @@
 							"syntax": "Packages/Python/Python.sublime-syntax",
 							"translate_tabs_to_spaces": false
 						},
-						"translation.x": 0.0,
+						"translation.x": 4.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 6,
 					"file": "game.pyw",
 					"semi_transient": false,
 					"settings":
@@ -662,7 +706,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 3,
 					"type": "text"
 				}
 			]
