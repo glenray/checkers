@@ -1,5 +1,5 @@
 import random
-
+import time
 '''
 Moron: The world's dumbest checkers bot. 
 Returns randomly selected move 
