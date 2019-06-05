@@ -58,6 +58,8 @@ class Board:
 			position[end[0]][end[1]] = 4
 		if end[0] == 7 and position[end[0]][end[1]] == 1:
 			position[end[0]][end[1]] = 2
+		
+		# self.position = position
 
 		# toggle side to move
 		self.onMove = -self.onMove
