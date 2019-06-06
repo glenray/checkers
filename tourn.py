@@ -16,7 +16,7 @@ b = board()
 bp = getattr(importlib.import_module("engines."+bpName), 'player')(b)
 rp = getattr(importlib.import_module("engines."+rpName), 'player')(b)
 
-i = 3			# number of games to play
+i = 1			# number of games to play
 a = 0			# counter
 red = 0			# red win count
 black = 0		# black win count
@@ -29,7 +29,6 @@ while a < i:
 		# switch player
 		player = bp if b.onMove == 1 else rp
 		move = player.selectMove()
-		# print(a,move,player.name,moveNo)
 		moveNo +=1
 		b.makeMove(move)
 
