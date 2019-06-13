@@ -1,5 +1,5 @@
 import random
-import time
+import operator
 import numpy as np
 '''
 littleBit: Translate board position to a bit board 
@@ -31,8 +31,9 @@ class player():
 	def selectMove(self):
 		self.convert2BB()
 		self.printBoard()
-		self.printBoard(self.getMoversBlack())
-		# exit()
+		self.printBoard(self.getMovers())
+		print(self.board.onMove)
+		exit()
 
 		# pick random move any way
 		self.board.getLegalMoves()
@@ -42,32 +43,28 @@ class player():
 			moveNo = random.randint(0, moveLen-1)
 			return moveList[moveNo]
 
-	def getMovers(self, side=None):
-		onMove = 1
+	"""
+	Identify which pieces on move have a valid non-jump move
+	Square 0 is in the upper left corner.
+	Black starting at the top, moving down.
+	Black pieces move forward with a right shift; red with left shift.
+	Kings need to check in both directions
+	"""
+	def getMovers( self ):
+		onMove = self.bp if self.board.onMove == 1 else self.rp
+		K = onMove & self.k
+		forShift = operator.rshift if self.board.onMove == 1 else operator.lshift
+		bacShift = operator.lshift if self.board.onMove == 1 else operator.rshift
+		empty = self.emptySqs
 
-	# to combine these functions, see https://stackoverflow.com/questions/2983139/assign-operator-to-variable-in-python
-	def getMoversBlack( self ):
-		BK = self.bp & self.k
-		movers = ( self.emptySqs >> 4 ) & self.bp
-		movers |= ( ( self.emptySqs & self.MASK_L3 ) >> 3 ) & self.bp
-		movers |= ( ( self.emptySqs & self.MASK_L5 ) >> 5 ) & self.bp
-		if( BK ):
-			movers |= (self.emptySqs << 4 ) & BK
-			movers |= (( self.emptySqs & self.MASK_R3 ) << 3 )
-			movers |= (( self.emptySqs & self.MASK_R5 ) << 5 )
+		movers = forShift( empty, 4 ) & onMove
+		movers |= forShift( empty & self.MASK_L3, 3 ) & onMove
+		movers |= forShift( empty & self.MASK_L5, 5 ) & onMove
+		if ( K ):
+			movers = bacShift( empty, 4 ) & onMove
+			movers |= bacShift( empty & self.MASK_L3, 3 ) & onMove
+			movers |= bacShift( empty & self.MASK_L5, 5 ) & onMove
 		return movers
-
-	def getMoversRed( self ):
-		RK = self.rp & self.k
-		movers = ( self.emptySqs << 4 ) & self.rp
-		movers |= ( ( self.emptySqs & self.MASK_L3 ) << 3 ) & self.rp
-		movers |= ( ( self.emptySqs & self.MASK_L5 ) << 5 ) & self.rp
-		if( RK ):
-			movers |= (self.emptySqs >> 4 ) & RK
-			movers |= (( self.emptySqs & self.MASK_R3 ) >> 3 )
-			movers |= (( self.emptySqs & self.MASK_R5 ) >> 5 )
-		return movers
-
 
 	def convert2BB( self ):
 		position = self.board.position
