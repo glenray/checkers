@@ -23,6 +23,16 @@ class player():
 		for  i in range(1, 32):
 			self.S.append( self.S[i-1] * 2 )
 		# This mask work when square 0 is on the top left
+		"""
+		  00  01  02  03
+		04  05  06  07
+		  08  09  10  11
+		12  13  14  15
+		  16  17  18  19
+		20  21  22  23
+		  24  25  26  27
+		28  29  30  31
+		"""
 		self.MASK_R3 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23]
 		self.MASK_R5 = self.S[0] | self.S[1] | self.S[2] | self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26]
 		self.MASK_L3 = self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]
@@ -32,8 +42,8 @@ class player():
 		self.convert2BB()
 		self.printBoard()
 		self.printBoard(self.getMovers())
-		print(self.board.onMove)
-		exit()
+		print("_____________")
+		# exit()
 
 		# pick random move any way
 		self.board.getLegalMoves()
