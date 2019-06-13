@@ -1,0 +1,63 @@
+		Old					New
+  28  29  30  31	  00  01  02  03		does R always go down?
+24  25  26  27		04  05  06  07
+  20  21  22  23	  08  09  10  11
+16  17  18  19		12  13  14  15
+  12  13  14  15	  16  17  18  19
+08  09  10  11		20  21  22  23
+  04  05  06  07	  24  25  26  27
+00  01  02  03		28  29  30  31
+
+self.MASK_L3 = self.S[ 1] | self.S[ 2] | self.S[ 3] | self.S[ 9] | self.S[10] | self.S[11] | self.S[17] | self.S[18] | self.S[19] | self.S[25] | self.S[26] | self.S[27];
+
+self.MASK_L5 = self.S[ 4] | self.S[ 5] | self.S[ 6] | self.S[12] | self.S[13] | self.S[14] | self.S[20] | self.S[21] | self.S[22];
+
+self.MASK_R3 = self.S[28] | self.S[29] | self.S[30] | self.S[20] | self.S[21] | self.S[22] | self.S[12] | self.S[13] | self.S[14] | self.S[ 4] | self.S[ 5] | self.S[ 6];
+
+self.MASK_R5 = self.S[25] | self.S[26] | self.S[27] | self.S[17] | self.S[18] | self.S[19] | self.S[ 9] | self.S[10] | self.S[11];
+
+________
+L down -- R up
+
+self.MASK_L3 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23];
+
+self.MASK_L5 = self.S[0] | self.S[1] | self.S[2] | self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26] ;
+
+self.MASK_R3 = self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26];
+
+self.MASK_R5 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31] ;
+
+
+
+00>28
+01>29
+02>30
+03>31
+04>24
+05>25
+06>26
+07>27
+08>20
+09>21
+10>22
+11>23
+12>16
+13>17
+14>18
+15>19
+16>12
+17>13
+18>14
+19>15
+20>08
+21>09
+22>10
+23>11
+24>04
+25>05
+26>06
+27>07
+28>00
+29>01
+30>02
+31>03
