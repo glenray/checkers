@@ -42,6 +42,10 @@ class player():
 		self.convert2BB()
 		self.printBoard()
 		self.printBoard(self.getMovers())
+		self.prBinary(self.rp)
+		self.prBinary(self.bp)
+		self.prBinary(self.k)
+
 		print("_____________")
 		# exit()
 
