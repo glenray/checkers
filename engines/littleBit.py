@@ -33,18 +33,19 @@ class player():
 		  24  25  26  27
 		28  29  30  31
 		"""
-		self.MASK_R3 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23]
-		self.MASK_R5 = self.S[0] | self.S[1] | self.S[2] | self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26]
-		self.MASK_L3 = self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]
-		self.MASK_L5 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31]
+		self.MASK_L3 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23]
+		self.MASK_L5 = self.S[0] | self.S[1] | self.S[2] | self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26]
+		self.MASK_R3 = self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]
+		self.MASK_R5 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31]
 
 	def selectMove(self):
 		self.convert2BB()
 		self.printBoard()
 		self.printBoard(self.getMovers())
-		self.prBinary(self.rp)
-		self.prBinary(self.bp)
-		self.prBinary(self.k)
+		print('Black\t', self.prBinary(self.bp))
+		print('Red  \t', self.prBinary(self.rp))
+		print('Kings\t', self.prBinary(self.k))
+		print('Empty\t', self.prBinary(self.emptySqs))
 
 		print("_____________")
 		# exit()
@@ -65,20 +66,47 @@ class player():
 	Kings need to check in both directions
 	"""
 	def getMovers( self ):
-		onMove = self.bp if self.board.onMove == 1 else self.rp
+		if self.board.onMove == 1:
+			onMove = self.bp
+			forShift = operator.rshift
+			bacShift = operator.lshift
+			forMsk3 = self.MASK_R3
+			forMsk5 = self.MASK_R5
+			kgMsk3 = self.MASK_L3
+			kgMsk5 = self.MASK_L5
+		else:
+			onMove = self.rp
+			forShift = operator.lshift
+			bacShift = operator.rshift
+			forMsk3 = self.MASK_L3
+			forMsk5 = self.MASK_L5
+			kgMsk3 = self.MASK_R3
+			kgMsk5 = self.MASK_R5
+		
 		K = onMove & self.k
-		forShift = operator.rshift if self.board.onMove == 1 else operator.lshift
-		bacShift = operator.lshift if self.board.onMove == 1 else operator.rshift
 		empty = self.emptySqs
 
 		movers = forShift( empty, 4 ) & onMove
-		movers |= forShift( empty & self.MASK_L3, 3 ) & onMove
-		movers |= forShift( empty & self.MASK_L5, 5 ) & onMove
+		movers |= forShift( empty & forMsk3, 3 ) & onMove
+		movers |= forShift( empty & forMsk5, 5 ) & onMove
 		if ( K ):
 			movers = bacShift( empty, 4 ) & onMove
-			movers |= bacShift( empty & self.MASK_L3, 3 ) & onMove
-			movers |= bacShift( empty & self.MASK_L5, 5 ) & onMove
+			movers |= bacShift( empty & kgMsk3, 3 ) & onMove
+			movers |= bacShift( empty & kgMsk5, 5 ) & onMove
 		return movers
+
+		# onMove = self.bp if self.board.onMove == 1 else self.rp
+		# forShift = operator.rshift if self.board.onMove == 1 else operator.lshift
+		# bacShift = operator.lshift if self.board.onMove == 1 else operator.rshift
+
+		# movers = forShift( empty, 4 ) & onMove
+		# movers |= forShift( empty & self.MASK_L3, 3 ) & onMove
+		# movers |= forShift( empty & self.MASK_L5, 5 ) & onMove
+		# if ( K ):
+		# 	movers = bacShift( empty, 4 ) & onMove
+		# 	movers |= bacShift( empty & self.MASK_R3, 3 ) & onMove
+		# 	movers |= bacShift( empty & self.MASK_R5, 5 ) & onMove
+		# return movers
 
 	def convert2BB( self ):
 		position = self.board.position
@@ -95,7 +123,7 @@ class player():
 		self.emptySqs = np.uint32(~(self.rp | self.bp ))
 
 	def prBinary ( self, bword ):
-		print(bin( bword )[2:].rjust(32, '0'))
+		return bin( bword )[2:].rjust(32, '0')
 
 	def prPos( self ):
 		print(bin(self.bp)[2:].rjust(32,'0'))
