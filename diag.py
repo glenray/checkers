@@ -6,13 +6,10 @@ brd = Board()
 lb = player(brd)
 moron = player(brd)
 
-
-lb.rp = 0b11111111101101000000000000000000
-lb.bp = 0b00000000000000000110100111111111
-lb.k  = 0b00000000000000000000000000000000
-
+lb.rp = int('11111111101101000000000000000000', 2)
+lb.bp = int('00000000000000000110100111111111', 2)
+lb.k  = int('00000000000000000000000000000000', 2)
 brd.onMove = 1
-brd.getLegalMoves()
 
-lb.printBoard()
+lb.convert2BB()
 print(lb.getMovers())

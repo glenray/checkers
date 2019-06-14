@@ -20,6 +20,20 @@ class Board:
 			2: black king
 			3: red piece
 			4: red king
+		The upper left corner of the board is coordinate [0][0]. It is a light square, so always empty.
+		
+		Here is the initial board position:
+		============================
+		row  Squares in row
+		============================
+		0   [0, 1, 0, 1, 0, 1, 0, 1]
+		1   [1, 0, 1, 0, 1, 0, 1, 0]
+		2   [0, 1, 0, 1, 0, 1, 0, 1]
+		3   [0, 0, 0, 0, 0, 0, 0, 0]
+		4   [0, 0, 0, 0, 0, 0, 0, 0]
+		5   [3, 0, 3, 0, 3, 0, 3, 0]
+		6   [0, 3, 0, 3, 0, 3, 0, 3]
+		7   [3, 0, 3, 0, 3, 0, 3, 0]
 		'''
 		self.position = self.clearBoard()
 		self.startPos = startPos if startPos != None else '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]'
