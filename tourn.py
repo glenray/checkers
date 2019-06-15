@@ -9,8 +9,8 @@ if len( sys.argv ) > 1:
 	rpName = sys.argv[1]
 	bpName = sys.argv[2]
 else:
-	bpName = 'moron'
-	rpName = 'littleBit'
+	bpName = 'littleBit'
+	rpName = 'moron'
 
 b = board()
 bp = getattr(importlib.import_module("engines."+bpName), 'player')(b)
