@@ -40,15 +40,6 @@ class player():
 
 	def selectMove(self):
 		self.convert2BB()
-		print(self.printBoard())
-		print(self.printBoard(self.getMovers()))
-		print('Black\t', self.prBinary(self.bp))
-		print('Red  \t', self.prBinary(self.rp))
-		print('Kings\t', self.prBinary(self.k))
-		print('Empty\t', self.prBinary(self.emptySqs))
-
-		print("_____________")
-		# exit()
 
 		# pick random move any way
 		self.board.getLegalMoves()
@@ -61,8 +52,8 @@ class player():
 	"""
 	Identify which pieces on move have a valid non-jump move
 	Square 0 is in the upper left corner.
-	Black starting at the top, moving down.
-	Black pieces move forward with a right shift; red with left shift.
+	Empty spaces in front of the red pieces are right shifted
+	to check the diagonal square for a red piece
 	Kings need to check in both directions
 	"""
 	def getMovers( self ):
@@ -88,19 +79,6 @@ class player():
 			movers |= bacShift( empty & kgMsk5, 5 ) & onMove
 		return movers
 
-		# onMove = self.bp if self.board.onMove == 1 else self.rp
-		# forShift = operator.rshift if self.board.onMove == 1 else operator.lshift
-		# bacShift = operator.lshift if self.board.onMove == 1 else operator.rshift
-
-		# movers = forShift( empty, 4 ) & onMove
-		# movers |= forShift( empty & self.MASK_L3, 3 ) & onMove
-		# movers |= forShift( empty & self.MASK_L5, 5 ) & onMove
-		# if ( K ):
-		# 	movers = bacShift( empty, 4 ) & onMove
-		# 	movers |= bacShift( empty & self.MASK_R3, 3 ) & onMove
-		# 	movers |= bacShift( empty & self.MASK_R5, 5 ) & onMove
-		# return movers
-
 	def convert2BB( self ):
 		position = self.board.position
 		i = 0
@@ -115,15 +93,6 @@ class player():
 		# Empty Squares
 		self.emptySqs = np.uint32(~(self.rp | self.bp ))
 
-	def prBinary ( self, bword ):
-		return bin( bword )[2:].rjust(32, '0')
-
-	def prPos( self ):
-		print(bin(self.bp)[2:].rjust(32,'0'))
-		print(bin(self.rp)[2:].rjust(32,'0'))
-		print(bin(self.k)[2:].rjust(32,'0'))
-		print("\n")
-
 	def setSq( self, sq, i ):
 		if sq == 0:
 			bpBit = 0
@@ -134,9 +103,9 @@ class player():
 			rpBit = 1 if sq > 2 else 0
 			kBit  = 1 if sq % 2 == 0 else 0
 
-		self.bp = self.modifyBit( self.bp, i, bpBit)
-		self.rp = self.modifyBit( self.rp, i, rpBit)
-		self.k = self.modifyBit( self.k, i, kBit)
+		self.bp = self.modifyBit( self.bp, i, bpBit )
+		self.rp = self.modifyBit( self.rp, i, rpBit )
+		self.k = self.modifyBit( self.k, i, kBit )
 
 	"""
 	Set single bit in binary word
@@ -149,34 +118,6 @@ class player():
 		mask = 1 << p 
 		return (n & ~mask) | ((b << p) & mask)
 
-	"""
-	Display bitboard as human readable board
-	@ isBoard bool if true displays the current position as pieces 
-	b, r, B, R, else just print 1 and 0s. Otherwise, shows the bitWord as 0s and 1s
-	"""
-	def printBoard(self, bitWord=None):
-		sq = 0
-		spacer = "  "
-		output = ""
-		for row in range(8):
-			s = spacer 	if row%2 == 0 else ""
-			for col in range(4):
-				mask = 1 << sq
-				if( bitWord == None ):
-					if( self.bp & mask > 0 ): s += 'b'
-					elif( self.rp & mask > 0 ):	s += 'r'
-					else: s += "-"
-
-					if( self.k & mask > 0 ): s = s.upper()
-				else:
-					if( bitWord & mask>0 ): s += '1'
-					else: s +='0'
-
-				sq += 1
-				output += s+spacer
-				s=""
-			output += "\n"
-		return output
 	# Count the number of bits set.
 	# From https://www.geeksforgeeks.org/count-set-bits-in-an-integer/
 	def countSetBits(self, n):
