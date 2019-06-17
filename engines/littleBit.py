@@ -1,6 +1,7 @@
 import random
 import operator
 import numpy as np
+from engines.engine import Engine
 '''
 littleBit: Translate board position to a bit board 
 Does not select any move yet
@@ -9,11 +10,11 @@ Glen Pritchard -- 6/5/2019
 A good tutorial about bitboards for checkers:
 https://www.3dkingdoms.com/checkers/bitboards.htm
 '''
-class player():
+class player(Engine):
 	def __init__(self, board):
-		self.board = board
-		self.name = "littleBit"
-		self.desc = "I translate the position into a bit board. No move selection yet."
+		super(player, self).__init__(board)
+		self._name = "littleBit"
+		self._desc = "I translate the position into a bit board. No move selection yet."
 		self.bp = np.uint32(0)
 		self.rp = np.uint32(0)
 		self.k =  np.uint32(0)
@@ -37,6 +38,16 @@ class player():
 		self.MASK_L5 = self.S[0] | self.S[1] | self.S[2] | self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26]
 		self.MASK_R3 = self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]
 		self.MASK_R5 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31]
+
+	@property
+	def name(self):
+		return self._name
+
+	@property
+	def desc(self):
+		return self._desc
+	
+	
 
 	def selectMove(self):
 		self.convert2BB()
@@ -122,6 +133,3 @@ class player():
 	# From https://www.geeksforgeeks.org/count-set-bits-in-an-integer/
 	def countSetBits(self, n):
 	    return (bin(n).count('1'))
-
-	def __repr__(self):
-		return "%s: %s" % (self.name, self.desc)

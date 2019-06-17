@@ -18,8 +18,8 @@ class Board:
 			0: empty
 			1: black piece
 			2: black king
-			3: red piece
-			4: red king
+			3: white piece
+			4: white king
 		The upper left corner of the board is coordinate [0][0]. It is a light square, so always empty.
 		
 		Here is the initial board position:

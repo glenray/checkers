@@ -1,15 +1,17 @@
 '''
-
-
-
 Snap: Always plays the first move on the list. 
 Glen Pritchard -- 6/29/2018
 '''
-class player():
-	def __init__(self, board):
-		self.board = board
-		self.name = "Snap"
-		self.desc = "Picks the first move on the list."
+from engines.engine import Engine
+
+class player( Engine ):
+	@property
+	def name(self):
+		return "Snap"
+
+	@property
+	def desc(self):
+		return "Picks the first move on the list"
 
 	def selectMove(self):
 		self.board.getLegalMoves()
@@ -17,6 +19,3 @@ class player():
 		moveLen = len(moveList)
 		if moveLen > 0:
 			return moveList[0]
-
-	def __repr__(self):
-		return "%s: %s" % (self.name, self.desc)

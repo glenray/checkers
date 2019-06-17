@@ -4,15 +4,17 @@ Run tournament between 2 engines
 import sys
 import importlib
 from board import Board as board
+from debug import debug
 
 if len( sys.argv ) > 1:
 	rpName = sys.argv[1]
 	bpName = sys.argv[2]
 else:
-	bpName = 'moron'
-	rpName = 'littleBit'
+	bpName = 'littleBit'
+	rpName = 'moron'
 
 b = board()
+db = debug()
 bp = getattr(importlib.import_module("engines."+bpName), 'player')(b)
 rp = getattr(importlib.import_module("engines."+rpName), 'player')(b)
 
@@ -29,6 +31,10 @@ while a < i:
 		# switch player
 		player = bp if b.onMove == 1 else rp
 		move = player.selectMove()
+		
+		print(db.printBoard( player ))
+		print(db.printBoard( player, player.getMovers()))
+
 		moveNo +=1
 		b.makeMove(move)
 
