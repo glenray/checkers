@@ -6,7 +6,6 @@ import time
 import board
 from engines.moron import player as moron
 from engines.snap import player as snap
-from engines.materialGirl import player as materialGirl
 
 '''
 GUI for checkers
@@ -357,6 +356,8 @@ if __name__ == "__main__" :
 		"multiJumpA"	: '[FEN "B:W18,26,27,25,11,19:B15K"]',
 		"multiJumpB"	: '[FEN "B:W18,26,27,25,11,19:B15K,14K"]',
 		"kingJump"		: '[FEN "B:W17,26,25:B23"]',
+		# In this position, snap as white will rock between 32 and 28 indefinitely. Black on move is unable to win or lose, and the game will continue forever. In the same position with white on move, playing randomly, can eventually blunder into a loss.
+		"deadDraw"		: '[FEN "B:W32K:B26K"]',
 	}
-	b = board.Board(positions['normalStart'])
+	b = board.Board(positions['deadDraw'])
 	a = GUI(b)

@@ -7,14 +7,18 @@ import random
 from engines.engine import Engine
 
 class player( Engine ):
+	def __init__(self, board):
+		super(player, self).__init__( board )
+		self._name = "Moron"
+		self._desc = "The world's dumbest checkers bot. Picks moves at random"
 
 	@property
 	def name(self):
-		return "Moron"
+		return self._name
 
 	@property
 	def desc(self):
-		return "The world's dumbest checkers bot. Picks moves at random"
+		return self._desc
 	
 	def selectMove(self):
 		self.board.getLegalMoves()

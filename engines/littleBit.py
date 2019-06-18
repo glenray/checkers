@@ -39,16 +39,13 @@ class player(Engine):
 		self.MASK_R3 = self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]
 		self.MASK_R5 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31]
 
+	# required by engine base class
 	@property
 	def name(self):
 		return self._name
-
 	@property
 	def desc(self):
 		return self._desc
-	
-	
-
 	def selectMove(self):
 		self.convert2BB()
 
@@ -90,13 +87,14 @@ class player(Engine):
 			movers |= bacShift( empty & kgMsk5, 5 ) & onMove
 		return movers
 
+	# create bit board representation from board.position 8x8 array
 	def convert2BB( self ):
 		position = self.board.position
 		i = 0
 		for x, row in enumerate(position):
 			for y, sq in enumerate(row):
 				# only set the dark squares
-				# dark squares are when row and column numbers are not both even
+				# dark squares are when row and column numbers are not both even or both odd
 				if ( x%2 != y%2 ):
 					self.setSq( sq, i )
 					i+=1

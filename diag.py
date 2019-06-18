@@ -9,7 +9,7 @@ from debug import debug
 
 brd = Board('[FEN "B:W18,26,27,25,11,19:B15K"]')
 x = littlebit(brd)
-print(x.board)
+print(x)
 exit()
 
 lb = littlebit(brd)
