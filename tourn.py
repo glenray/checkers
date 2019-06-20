@@ -6,63 +6,78 @@ import importlib
 from board import Board as board
 from debug import debug
 from engines.littleBit import player as lb
+import pkgutil
 
-if len( sys.argv ) > 1:
-	bpName = sys.argv[1]
-	rpName = sys.argv[2]
-else:
-	bpName = 'moron'
-	rpName = 'snap'
+class Tourn():
 
-b = board()
-bit = lb(b)
-db = debug()
-bp = getattr(importlib.import_module("engines."+bpName), 'player')(b)
-rp = getattr(importlib.import_module("engines."+rpName), 'player')(b)
+	def __init__(self):
+		self.getUserInput()
 
-i = 100			# number of games to play
-a = 1			# counter
-red = 0			# red win count
-black = 0		# black win count
-draw = 0		# draw count
-mostMoves = 0
+		self.b = board()
+		self.db = debug()
+		self.bp = getattr(importlib.import_module("engines." + self.engines[self.bpIdx]), 'player')(self.b)
+		self.rp = getattr(importlib.import_module("engines." + self.engines[self.rpIdx]), 'player')(self.b)
+		self.red = 0		# red win count
+		self.black = 0		# black win count
+		self.draw = 0		# draw count
+		self.mostMoves = 0
 
-while a <= i: 
-	# Play the game until no legal moves left
-	isdraw = False
-	moveNo = 1
-	b.getLegalMoves()
-	while b.legalMoves and isdraw == False:
-		# select player on move
-		player = bp if b.onMove == 1 else rp
-		move = player.selectMove()
-		moveNo +=1
-		if moveNo == 1000:
-			isdraw = True
-		b.makeMove(move)
+		self.runTournament()
+		self.printResult()
 
-	# update counters; print game message
-	if isdraw == True:
-		draw += 1
-		message = "Draw"
-	elif (b.onMove==1):
-		red +=1
-		message = f'Game {a} won by {rp.name} in {moveNo} moves.'
-	else:
-		black += 1
-		message = f'Game {a} won by {bp.name} in {moveNo} moves.'
-	print(message)
-	
-	a += 1
-	if moveNo > mostMoves and isdraw == False:
-		mostMoves = moveNo
-	
-	# start the next game
-	b.reset()
+	def getUserInput( self ):
+		self.engines = [name for _, name, _ in pkgutil.iter_modules(['engines'])]
+		self.engines.remove('engine')
 
-# print final tournament results
-print("\nTournament Results")
-print(f"{bp.name} as Black: {black}")
-print(f"{rp.name} as Red: {red}")
-print(f"Draws: {draw}")
-print(f"Most Moves (when game not a draw): {mostMoves}")
+		print("Engine Choices")
+		for i, engine in enumerate(self.engines):
+			print(i, engine)
+
+		self.bpIdx = int(input("Engine No for Black: "))
+		self.rpIdx = int(input("Engine No for Red: "))
+		self.n = 	int(input("Number of Games: "))
+
+	def runTournament( self ):
+		for a in range(1, self.n+1): 
+			# Play the game until no legal moves left
+			isdraw = False
+			moveNo = 1
+			self.b.getLegalMoves()
+			while self.b.legalMoves and isdraw == False:
+				# select player on move
+				player = self.bp if self.b.onMove == 1 else self.rp
+				move = player.selectMove()
+				moveNo +=1
+				# declare draw if 1000 moves without victory
+				if moveNo == 1000:
+					isdraw = True
+				self.b.makeMove(move)
+
+			# update counters; print game message
+			if isdraw == True:
+				self.draw += 1
+				message = f"Game {a}: Draw"
+			elif (self.b.onMove==1):
+				self.red +=1
+				message = f'Game {a} won by {self.rp.name} in {moveNo} moves.'
+			else:
+				self.black += 1
+				message = f'Game {a} won by {self.bp.name} in {moveNo} moves.'
+			print(message)
+			
+			if moveNo > self.mostMoves and isdraw == False:
+				self.mostMoves = moveNo
+			
+			# start the next game
+			self.b.reset()
+
+	def printResult( self ):
+		# print final tournament results
+		print("\nTournament Results")
+		print(f"{self.bp.name} as Black: {self.black}")
+		print(f"{self.rp.name} as Red: {self.red}")
+		print(f"Draws: {self.draw}")
+		print(f"Most Moves (when game not a draw): {self.mostMoves}")
+
+if __name__ == "__main__" :
+	Tourn()
