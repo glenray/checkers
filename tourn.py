@@ -5,37 +5,35 @@ import sys
 import importlib
 from board import Board as board
 from debug import debug
-from engines.littleBit import player as lb
 import pkgutil
 
 class Tourn():
 
 	def __init__(self):
-		self.getUserInput()
-
 		self.b = board()
 		self.db = debug()
-		self.bp = getattr(importlib.import_module("engines." + self.engines[self.bpIdx]), 'player')(self.b)
-		self.rp = getattr(importlib.import_module("engines." + self.engines[self.rpIdx]), 'player')(self.b)
 		self.red = 0		# red win count
 		self.black = 0		# black win count
 		self.draw = 0		# draw count
 		self.mostMoves = 0
 
+		self.getUserInput()
 		self.runTournament()
 		self.printResult()
 
 	def getUserInput( self ):
-		self.engines = [name for _, name, _ in pkgutil.iter_modules(['engines'])]
-		self.engines.remove('engine')
+		engines = []
+		engineNames = [name for _, name, _ in pkgutil.iter_modules(['engines'])]
+		engineNames.remove('engine')
 
 		print("Engine Choices")
-		for i, engine in enumerate(self.engines):
-			print(i, engine)
+		for i, engineName in enumerate( engineNames ):
+			engines.insert(i, getattr(importlib.import_module("engines." + engineName), 'player')(self.b))
+			print( i, engines[i] )
 
-		self.bpIdx = int(input("Engine No for Black: "))
-		self.rpIdx = int(input("Engine No for Red: "))
-		self.n = 	int(input("Number of Games: "))
+		self.bp = engines[int(input("Engine No for Black: "))]
+		self.rp = engines[int(input("Engine No for Red: "))]
+		self.n = int(input("How many games: "))
 
 	def runTournament( self ):
 		for a in range(1, self.n+1): 

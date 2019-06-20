@@ -4,24 +4,12 @@
 		"selected_items":
 		[
 			[
+				"engine",
+				"engineNames"
+			],
+			[
 				"M",
-				"MASK_L3"
-			],
-			[
-				"prBi",
-				"prBinary"
-			],
-			[
-				"for",
-				"forShift"
-			],
-			[
-				"emp",
-				"emptySqs"
-			],
-			[
-				"on",
-				"onMove"
+				"MASK_R3"
 			],
 			[
 				"coun",
@@ -88,6 +76,10 @@
 				"rawMessPath"
 			],
 			[
+				"for",
+				"foreach\tforeach …"
+			],
+			[
 				"data",
 				"DataTable"
 			],
@@ -140,16 +132,8 @@
 			"file": "engines/littleBit.py",
 			"settings":
 			{
-				"buffer_size": 4201,
+				"buffer_size": 4200,
 				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "game.txt",
-			"settings":
-			{
-				"buffer_size": 972931,
 				"line_ending": "Windows"
 			}
 		},
@@ -157,18 +141,7 @@
 			"file": "diag.py",
 			"settings":
 			{
-				"buffer_size": 640,
-				"encoding": "UTF-8",
-				"line_ending": "Windows",
-				"name": "import engines.littleBit as lb"
-			}
-		},
-		{
-			"file": "debug.py",
-			"settings":
-			{
-				"buffer_size": 1096,
-				"encoding": "UTF-8",
+				"buffer_size": 639,
 				"line_ending": "Windows"
 			}
 		},
@@ -176,19 +149,27 @@
 			"file": "tourn.py",
 			"settings":
 			{
-				"buffer_size": 1563,
+				"buffer_size": 2160,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "engines/engine.py",
+			"file": "GUI.py",
 			"settings":
 			{
-				"buffer_size": 346,
+				"buffer_size": 10114,
 				"encoding": "UTF-8",
-				"line_ending": "Windows",
-				"name": "from ABC import abstractmethod"
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "game.pyw",
+			"settings":
+			{
+				"buffer_size": 521,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
 			}
 		}
 	],
@@ -309,28 +290,21 @@
 	},
 	"expanded_folders":
 	[
-		"/C/Users/Glen/Documents/python/checkers3",
-		"/C/Users/Glen/Documents/python/checkers3/__pycache__",
-		"/C/Users/Glen/Documents/python/checkers3/engines",
-		"/C/Users/Glen/Documents/python/checkers3/engines/__pycache__"
+		"/C/Users/Glen.WS-04/Documents/python/checkers",
+		"/C/Users/Glen.WS-04/Documents/python/checkers/engines"
 	],
 	"file_history":
 	[
-		"/C/Users/Glen/Documents/python/test/Checkers/minmax.py",
-		"/C/Users/Glen/Documents/python/test/Checkers/main.py",
-		"/C/Users/Glen/Documents/python/test/Checkers/board.py",
-		"/C/Users/Glen/Documents/python/checkers3/game.pyw",
-		"/C/Users/Glen/Documents/python/checkers3/GUI.py",
-		"/C/Users/Glen/Documents/python/checkers3/engines/moron.py",
-		"/C/Users/Glen/Documents/python/checkers3/engines/snap.py",
-		"/C/Users/Glen/Documents/python/checkers3/.git/COMMIT_EDITMSG",
-		"/C/Users/Glen/Documents/python/checkers3/engines/materialGirl.py",
+		"/C/Users/Glen.WS-04/Documents/python/checkers/engines/materialGirl.py",
 		"/C/Users/Glen/Documents/python/checkers3/game.txt",
+		"/C/Users/Glen/Documents/python/checkers3/.git/COMMIT_EDITMSG",
 		"/C/Users/Glen/Documents/python/checkers3/.gitignore",
 		"/C/Users/Glen/Documents/python/checkers3/converted.txt",
 		"/C/Users/Glen/Documents/python/checkers3/mask conversion.txt",
 		"/C/Users/Glen/Documents/python/checkers3/bitBoard.py",
 		"/C/Users/Glen/Documents/python/checkers3/test.py",
+		"/C/Users/Glen/Documents/python/checkers3/engines/snap.py",
+		"/C/Users/Glen/Documents/python/checkers3/engines/moron.py",
 		"/C/Users/Glen/Documents/python/checkers3/moves.txt",
 		"/C/Users/Glen/Documents/BatchFiles/toggleHomeVPN.bat",
 		"/C/Users/Glen/Documents/EBundleViewer/Log/EBundleViewer.log",
@@ -342,6 +316,7 @@
 		"/C/Users/Glen/Downloads/src6/src6/draw2.js",
 		"/C/Users/Glen/Downloads/src6/src6/draw2.html",
 		"/C/Users/Glen/Documents/js/checkers/checkers.html",
+		"/C/Users/Glen/Documents/python/checkers3/game.pyw",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/s1mCPL/cpl-child/style.css",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/s1mCPLPlugin/glenrayCPL.php",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/s1mCPLPlugin/liveChat/mobileScripts.js",
@@ -443,7 +418,11 @@
 		"/C/Users/Glen.WS-04/Dropbox/Sublime/Projects/pncEMSite/application/controllers/Sendmail.php",
 		"/C/Users/Glen.WS-04/Downloads/noname1",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/pncEMScript/extractContacts.php",
-		"/C/Users/Glen/Dropbox/Keys/cplSiteground.ppk"
+		"/C/Users/Glen/Dropbox/Keys/cplSiteground.ppk",
+		"/C/Program Files/PuTTY/README.txt",
+		"/C/Users/Glen/Dropbox/Clark Perdue & List/Dev Site Files/notes.txt",
+		"/C/xampp/apache/conf/extra/httpd-vhosts.conf",
+		"/C/xampp/htdocs/devs/clarkperdue/wp-config.php"
 	],
 	"find":
 	{
@@ -464,17 +443,7 @@
 		"case_sensitive": true,
 		"find_history":
 		[
-			"prin",
-			"code",
-			"raw",
-			"print",
-			"won by",
-			"red",
-			"self.rp",
-			"red",
-			"prBinary",
-			"28",
-			"self.onMove",
+			"lb",
 			"time",
 			"empty",
 			"time",
@@ -561,7 +530,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -577,8 +546,8 @@
 						"selection":
 						[
 							[
-								7233,
-								7239
+								0,
+								0
 							]
 						],
 						"settings":
@@ -591,10 +560,10 @@
 							"word_wrap": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 943.0,
+						"translation.y": 4381.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
@@ -603,63 +572,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4201,
-						"regions":
-						{
-							"bookmarks":
-							{
-								"flags": 144,
-								"icon": "bookmark",
-								"regions":
-								[
-									[
-										1683,
-										1683
-									],
-									[
-										4041,
-										4041
-									]
-								],
-								"scope": "bookmarks"
-							}
-						},
-						"selection":
-						[
-							[
-								3249,
-								3249
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"translate_tabs_to_spaces": false,
-							"word_wrap": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1696.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "game.txt",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 972931,
+						"buffer_size": 4200,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6902,
-								6908
+								491,
+								491
 							]
 						],
 						"settings":
@@ -667,38 +588,39 @@
 							"incomplete_sync": null,
 							"remote_loading": false,
 							"synced": false,
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false,
+							"word_wrap": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 10607.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 2,
 					"file": "diag.py",
-					"semi_transient": false,
+					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 640,
+						"buffer_size": 639,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								330,
-								330
+								639,
+								639
 							]
 						],
 						"settings":
 						{
-							"auto_name": "import engines.littleBit as lb",
 							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
 							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
@@ -709,63 +631,20 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "debug.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1096,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								320,
-								320
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 385.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
+					"buffer": 3,
 					"file": "tourn.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1563,
+						"buffer_size": 2160,
 						"regions":
 						{
-							"bookmarks":
-							{
-								"flags": 144,
-								"icon": "bookmark",
-								"regions":
-								[
-									[
-										839,
-										839
-									]
-								],
-								"scope": "bookmarks"
-							}
 						},
 						"selection":
 						[
 							[
-								885,
-								885
+								0,
+								0
 							]
 						],
 						"settings":
@@ -777,40 +656,73 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 382.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
-					"file": "engines/engine.py",
+					"buffer": 4,
+					"file": "GUI.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 346,
+						"buffer_size": 10114,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								230,
-								230
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"auto_name": "from ABC import abstractmethod",
 							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 1.0,
+						"translation.y": 4656.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "game.pyw",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 521,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								507,
+								507
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
 							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 5,
 					"type": "text"
 				}
 			]
@@ -863,7 +775,7 @@
 	{
 		"height": 189.0
 	},
-	"pinned_build_system": "",
+	"pinned_build_system": "Packages/User/pythonREPL.sublime-build",
 	"project": "checkers3.sublime-project",
 	"replace":
 	{

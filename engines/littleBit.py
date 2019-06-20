@@ -14,7 +14,7 @@ class player(Engine):
 	def __init__(self, board):
 		super(player, self).__init__(board)
 		self._name = "littleBit"
-		self._desc = "I translate the position into a bit board. No move selection yet."
+		self._desc = "I translate the position into a bit board, but moves are random."
 		self.bp = np.uint32(0)
 		self.rp = np.uint32(0)
 		self.k =  np.uint32(0)
