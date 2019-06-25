@@ -24,7 +24,7 @@ class player(Engine):
 		self.S.append(1)
 		for  i in range(1, 32):
 			self.S.append( np.uint32(self.S[i-1] * 2) )
-		# This mask work when square 0 is on the top left
+		# These left shift and right shift masks work when square 0 is on the top left
 		"""
 		  00  01  02  03
 		04  05  06  07
@@ -71,7 +71,7 @@ class player(Engine):
 		movers =  n.forShift( self.emptySqs, 4 ) & n.onMove
 		movers |= n.forShift( self.emptySqs & n.forMsk3, 3 ) & n.onMove
 		movers |= n.forShift( self.emptySqs & n.forMsk5, 5 ) & n.onMove
-		if ( n.K ):
+		if n.K:
 			movers |= n.bacShift( self.emptySqs, 4 ) & n.onMove
 			movers |= n.bacShift( self.emptySqs & n.kgMsk3, 3 ) & n.K
 			movers |= n.bacShift( self.emptySqs & n.kgMsk5, 5 ) & n.K
@@ -83,7 +83,7 @@ class player(Engine):
 		jumpers = 0
 
 		Temp = n.forShift( self.emptySqs, 4 ) & n.enemy
-		jumpers |= ( n.forShift( (Temp & n.forMsk3), 3 ) | n.forShift( (Temp & n.forMsk5), 5 )) & n.onMove
+		jumpers |= ( n.forShift( ( Temp & n.forMsk3 ), 3 ) | n.forShift( ( Temp & n.forMsk5 ), 5 ) ) & n.onMove
 		Temp = (n.forShift( self.emptySqs & n.forMsk3, 3 ) | n.forShift( (self.emptySqs & n.forMsk5), 5)) & n.enemy
 		jumpers |= n.forShift( Temp, 4 ) & n.onMove
 		if n.K:
@@ -96,18 +96,19 @@ class player(Engine):
 	# set side of board variables
 	# depending on color, sets the direction of forward and backward moves
 	def getSideVars( self ):
-		d = {}
 		s = self.board.onMove
-
-		d['onMove'] = self.bp if s == 1 else self.rp
-		d['enemy'] = self.rp if s == 1 else self.bp
-		d['forShift'] = operator.rshift if s == 1 else operator.lshift 
-		d['bacShift'] = operator.lshift if s == 1 else operator.rshift
-		d['forMsk3'] = self.MASK_R3 if s == 1 else self.MASK_L3
-		d['forMsk5'] = self.MASK_R5 if s == 1 else self.MASK_L5
-		d['kgMsk3'] = self.MASK_L3 if s == 1 else self.MASK_R3
-		d['kgMsk5'] = self.MASK_L5 if s == 1 else self.MASK_R5
+		d = {
+			'onMove' : self.bp if s == 1 else self.rp,
+			'enemy' : self.rp if s == 1 else self.bp,
+			'forShift' : operator.rshift if s == 1 else operator.lshift,
+			'bacShift' : operator.lshift if s == 1 else operator.rshift,
+			'forMsk3' : self.MASK_R3 if s == 1 else self.MASK_L3,
+			'forMsk5' : self.MASK_R5 if s == 1 else self.MASK_L5,
+			'kgMsk3' : self.MASK_L3 if s == 1 else self.MASK_R3,
+			'kgMsk5' : self.MASK_L5 if s == 1 else self.MASK_R5,
+		}
 		d['K'] = d['onMove'] & self.k
+
 		return SimpleNamespace(**d)
 
 	# create bit board representation from board.position 8x8 array
