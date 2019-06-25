@@ -4,32 +4,44 @@
 		"selected_items":
 		[
 			[
-				"for",
-				"forMsk3"
+				"is",
+				"isJump"
 			],
 			[
-				"forM",
-				"forMsk5"
+				"pos",
+				"position"
 			],
 			[
-				"land",
-				"landingSqs"
+				"legal",
+				"legalMoves"
+			],
+			[
+				"init",
+				"initPosArray"
+			],
+			[
+				"prit",
+				"printBoard"
+			],
+			[
+				"FE",
+				"FEN2Pos"
+			],
+			[
+				"R",
+				"RP"
+			],
+			[
+				"F",
+				"FEN2Pos"
+			],
+			[
+				"engine",
+				"engineNames"
 			],
 			[
 				"M",
-				"MASK_L3"
-			],
-			[
-				"prBi",
-				"prBinary"
-			],
-			[
-				"emp",
-				"emptySqs"
-			],
-			[
-				"on",
-				"onMove"
+				"MASK_R3"
 			],
 			[
 				"coun",
@@ -96,6 +108,10 @@
 				"rawMessPath"
 			],
 			[
+				"for",
+				"foreach\tforeach …"
+			],
+			[
 				"data",
 				"DataTable"
 			],
@@ -145,40 +161,20 @@
 			}
 		},
 		{
-			"contents": "import random\nimport operator\nimport numpy as np\nfrom engines.engine import Engine\nfrom types import SimpleNamespace\n'''\nlittleBit: Translate board position to a bit board \nDoes not select any move yet\nGlen Pritchard -- 6/5/2019\n\nA good tutorial about bitboards for checkers:\nhttps://www.3dkingdoms.com/checkers/bitboards.htm\n'''\nclass player(Engine):\n\tdef __init__(self, board):\n\t\tsuper(player, self).__init__(board)\n\t\tself._name = \"littleBit\"\n\t\tself._desc = \"I translate the position into a bit board, but moves are random.\"\n\t\tself.bp = np.uint32(0)\n\t\tself.rp = np.uint32(0)\n\t\tself.k =  np.uint32(0)\n\t\tself.emptySqs = np.uint32(0)\n\t\tself.S = []\n\t\tself.S.append(1)\n\t\tfor  i in range(1, 32):\n\t\t\tself.S.append( np.uint32(self.S[i-1] * 2) )\n\t\t# This mask work when square 0 is on the top left\n\t\t\"\"\"\n\t\t  00  01  02  03\n\t\t04  05  06  07\n\t\t  08  09  10  11\n\t\t12  13  14  15\n\t\t  16  17  18  19\n\t\t20  21  22  23\n\t\t  24  25  26  27\n\t\t28  29  30  31\n\t\t\"\"\"\n\t\tself.MASK_L3 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23]\n\t\tself.MASK_L5 = self.S[0] | self.S[1] | self.S[2] | self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26]\n\t\tself.MASK_R3 = self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]\n\t\tself.MASK_R5 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31]\n\n\t# required by engine base class\n\t@property\n\tdef name(self):\n\t\treturn self._name\n\t@property\n\tdef desc(self):\n\t\treturn self._desc\n\tdef selectMove(self):\n\t\tself.convert2BB()\n\n\t\t# pick random move any way\n\t\tself.board.getLegalMoves()\n\t\tmoveList = self.board.legalMoves\n\t\tmoveLen = len(moveList)\n\t\tif moveLen > 0:\n\t\t\tmoveNo = random.randint(0, moveLen-1)\n\t\t\treturn moveList[moveNo]\n\n\t\"\"\"\n\tIdentify which pieces on move have a valid non-jump move\n\tSquare 0 is in the upper left corner.\n\tEmpty spaces in front of the red pieces are right shifted\n\tto check the diagonal square for a red piece\n\tKings need to check in both directions\n\t\"\"\"\n\tdef getMovers( self ):\n\t\tn = self.getSideVars()\t\t\n\t\tK = n.onMove & self.k\n\t\tempty = self.emptySqs\n\n\t\tmovers =  n.forShift( empty, 4 ) & n.onMove\n\t\tmovers |= n.forShift( empty & n.forMsk3, 3 ) & n.onMove\n\t\tmovers |= n.forShift( empty & n.forMsk5, 5 ) & n.onMove\n\t\tif ( K ):\n\t\t\tmovers |= n.bacShift( empty, 4 ) & n.onMove\n\t\t\tmovers |= n.bacShift( empty & n.kgMsk3, 3 ) & K\n\t\t\tmovers |= n.bacShift( empty & n.kgMsk5, 5 ) & K\n\t\treturn movers\n\n\t# return pieces that can jump\n\tdef getJumpers( self ):\n\t\tn = self.getSideVars()\n\t\tK = n.onMove & self.k\n\t\tempty = self.emptySqs\n\t\tjumpers = 0\n\n\t\tTemp = n.forShift( empty, 4 ) & n.enemy\n\t\tjumpers |= (n.forShift( (Temp&n.forMsk3), 3 ) | n.forShift( (Temp&n.forMsk5), 5 )) & n.onMove\n\t\tTemp = (n.forShift( empty&n.forMsk3, 3 ) | n.forShift( (empty&n.forMsk5), 5)) & n.enemy\n\t\tjumpers |= n.forShift( Temp, 4 ) & n.onMove\n\t\tif K:\n\t\t\tTemp = n.bacShift( empty, 4 ) & n.enemy\n\t\t\tjumpers |= (n.bacShift( (Temp&n.kgMsk3), 3 ) | n.bacShift( (Temp&n.kgMsk5), 5 )) & K\n\t\t\tTemp = (n.bacShift( empty&n.kgMsk3, 3 ) | n.bacShift( (empty&n.kgMsk5), 5)) & n.enemy\n\t\t\tjumpers |= n.bacShift( Temp, 4 ) & K\n\t\treturn jumpers\n\n\t# set side of board variables\n\t# depending on color, sets the direction of forward and backward moves\n\tdef getSideVars( self ):\n\t\td = {}\n\t\ts = self.board.onMove\n\n\t\td['onMove'] = self.bp if s == 1 else self.rp\n\t\td['enemy'] = self.rp if s == 1 else self.bp\n\t\td['forShift'] = operator.rshift if s == 1 else operator.lshift \n\t\td['bacShift'] = operator.lshift if s == 1 else operator.rshift\n\t\td['forMsk3'] = self.MASK_R3 if s == 1 else self.MASK_L3\n\t\td['forMsk5'] = self.MASK_R5 if s == 1 else self.MASK_L5\n\t\td['kgMsk3'] = self.MASK_L3 if s == 1 else self.MASK_R3\n\t\td['kgMsk5'] = self.MASK_L5 if s == 1 else self.MASK_R5\n\t\td['K'] = d['onMove'] & self.k\n\t\treturn SimpleNamespace(**d)\n\n\t# create bit board representation from board.position 8x8 array\n\tdef convert2BB( self ):\n\t\tposition = self.board.position\n\t\ti = 0\n\t\tfor x, row in enumerate(position):\n\t\t\tfor y, sq in enumerate(row):\n\t\t\t\t# only set the dark squares\n\t\t\t\t# dark squares are when row and column numbers are not both even or both odd\n\t\t\t\tif ( x%2 != y%2 ):\n\t\t\t\t\tself.setSq( sq, i )\n\t\t\t\t\ti+=1\n\t\t# No we can extract other useful information\n\t\t# Empty Squares\n\t\tself.emptySqs = np.uint32(~(self.rp | self.bp ))\n\n\tdef setSq( self, sq, i ):\n\t\tif sq == 0:\n\t\t\tbpBit = 0\n\t\t\trpBit = 0\n\t\t\tkBit  = 0\n\t\telse:\n\t\t\tbpBit = 1 if sq < 3 else 0\n\t\t\trpBit = 1 if sq > 2 else 0\n\t\t\tkBit  = 1 if sq % 2 == 0 else 0\n\n\t\tself.bp = self.modifyBit( self.bp, i, bpBit )\n\t\tself.rp = self.modifyBit( self.rp, i, rpBit )\n\t\tself.k = self.modifyBit( self.k, i, kBit )\n\n\t\"\"\"\n\tSet single bit in binary word\n\tn binary number\n\tp int position to be changed starting at 0\n\tb int new value of bit, 1 or 0\n\tfrom https://www.geeksforgeeks.org/modify-bit-given-position/\n\t\"\"\"\n\tdef modifyBit( self, n,  p,  b):\n\t\tmask = 1 << p \n\t\treturn (n & ~mask) | ((b << p) & mask)\n\n\t# Count the number of bits set.\n\t# From https://www.geeksforgeeks.org/count-set-bits-in-an-integer/\n\tdef countSetBits(self, n):\n\t    return (bin(n).count('1'))",
-			"file": "engines/littleBit.py",
-			"file_size": 5390,
-			"file_write_time": 132056257046588987,
+			"file": "board2.py",
 			"settings":
 			{
-				"buffer_size": 5264,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "game.txt",
-			"settings":
-			{
-				"buffer_size": 184,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "diag.py",
-			"settings":
-			{
-				"buffer_size": 685,
+				"buffer_size": 4440,
 				"encoding": "UTF-8",
 				"line_ending": "Windows",
-				"name": "import engines.littleBit as lb"
+				"name": "\"\"\""
 			}
 		},
 		{
-			"file": "debug.py",
+			"file": "engines/littleBit.py",
 			"settings":
 			{
-				"buffer_size": 1096,
+				"buffer_size": 5299,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -193,20 +189,11 @@
 			}
 		},
 		{
-			"file": "engines/engine.py",
-			"settings":
-			{
-				"buffer_size": 346,
-				"encoding": "UTF-8",
-				"line_ending": "Windows",
-				"name": "from ABC import abstractmethod"
-			}
-		},
-		{
 			"file": "GUI.py",
 			"settings":
 			{
 				"buffer_size": 10114,
+				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		}
@@ -328,30 +315,22 @@
 	},
 	"expanded_folders":
 	[
-		"/C/Users/Glen/Documents/python/checkers3",
-		"/C/Users/Glen/Documents/python/checkers3/__pycache__",
-		"/C/Users/Glen/Documents/python/checkers3/engines",
-		"/C/Users/Glen/Documents/python/checkers3/engines/__pycache__"
+		"/C/Users/Glen.WS-04/Documents/python/checkers",
+		"/C/Users/Glen.WS-04/Documents/python/checkers/engines"
 	],
 	"file_history":
 	[
-		"/C/Users/Glen/Documents/python/checkers3/.git/COMMIT_EDITMSG",
-		"/C/Users/Glen/Documents/python/checkers3/imp.py",
-		"/C/Users/Glen/AppData/Roaming/Sublime Text 3/Packages/User/pythonREPL.sublime-build",
-		"/C/Users/Glen/Documents/python/test/Checkers/minmax.py",
-		"/C/Users/Glen/Documents/python/test/Checkers/main.py",
-		"/C/Users/Glen/Documents/python/test/Checkers/board.py",
-		"/C/Users/Glen/Documents/python/checkers3/game.pyw",
-		"/C/Users/Glen/Documents/python/checkers3/GUI.py",
-		"/C/Users/Glen/Documents/python/checkers3/engines/moron.py",
-		"/C/Users/Glen/Documents/python/checkers3/engines/snap.py",
-		"/C/Users/Glen/Documents/python/checkers3/engines/materialGirl.py",
+		"/C/Users/Glen.WS-04/Documents/python/checkers/game.pyw",
+		"/C/Users/Glen.WS-04/Documents/python/checkers/engines/materialGirl.py",
 		"/C/Users/Glen/Documents/python/checkers3/game.txt",
+		"/C/Users/Glen/Documents/python/checkers3/.git/COMMIT_EDITMSG",
 		"/C/Users/Glen/Documents/python/checkers3/.gitignore",
 		"/C/Users/Glen/Documents/python/checkers3/converted.txt",
 		"/C/Users/Glen/Documents/python/checkers3/mask conversion.txt",
 		"/C/Users/Glen/Documents/python/checkers3/bitBoard.py",
 		"/C/Users/Glen/Documents/python/checkers3/test.py",
+		"/C/Users/Glen/Documents/python/checkers3/engines/snap.py",
+		"/C/Users/Glen/Documents/python/checkers3/engines/moron.py",
 		"/C/Users/Glen/Documents/python/checkers3/moves.txt",
 		"/C/Users/Glen/Documents/BatchFiles/toggleHomeVPN.bat",
 		"/C/Users/Glen/Documents/EBundleViewer/Log/EBundleViewer.log",
@@ -363,6 +342,7 @@
 		"/C/Users/Glen/Downloads/src6/src6/draw2.js",
 		"/C/Users/Glen/Downloads/src6/src6/draw2.html",
 		"/C/Users/Glen/Documents/js/checkers/checkers.html",
+		"/C/Users/Glen/Documents/python/checkers3/game.pyw",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/s1mCPL/cpl-child/style.css",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/s1mCPLPlugin/glenrayCPL.php",
 		"/C/Users/Glen/Dropbox/Sublime/Projects/s1mCPLPlugin/liveChat/mobileScripts.js",
@@ -462,7 +442,12 @@
 		"/C/Users/Glen.WS-04/Dropbox/Sublime/Projects/pncEMScript/simple_html_dom.php",
 		"/C/Users/Glen.WS-04/Dropbox/Sublime/Projects/pncEMScript/composer.json",
 		"/C/Users/Glen.WS-04/Dropbox/Sublime/Projects/pncEMSite/application/controllers/Sendmail.php",
-		"/C/Users/Glen.WS-04/Downloads/noname1"
+		"/C/Users/Glen.WS-04/Downloads/noname1",
+		"/C/Users/Glen/Dropbox/Sublime/Projects/pncEMScript/extractContacts.php",
+		"/C/Users/Glen/Dropbox/Keys/cplSiteground.ppk",
+		"/C/Program Files/PuTTY/README.txt",
+		"/C/Users/Glen/Dropbox/Clark Perdue & List/Dev Site Files/notes.txt",
+		"/C/xampp/apache/conf/extra/httpd-vhosts.conf"
 	],
 	"find":
 	{
@@ -483,18 +468,7 @@
 		"case_sensitive": true,
 		"find_history":
 		[
-			"mostMo",
-			"prin",
-			"code",
-			"raw",
-			"print",
-			"won by",
-			"red",
-			"self.rp",
-			"red",
-			"prBinary",
-			"28",
-			"self.onMove",
+			"lb",
 			"time",
 			"empty",
 			"time",
@@ -597,8 +571,8 @@
 						"selection":
 						[
 							[
-								8003,
-								8003
+								3853,
+								3853
 							]
 						],
 						"settings":
@@ -611,19 +585,19 @@
 							"word_wrap": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3913.0,
+						"translation.y": 2880.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "engines/littleBit.py",
+					"file": "board2.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5264,
+						"buffer_size": 4440,
 						"regions":
 						{
 							"bookmarks":
@@ -633,20 +607,8 @@
 								"regions":
 								[
 									[
-										1717,
-										1717
-									],
-									[
-										2672,
-										2672
-									],
-									[
-										2674,
-										2674
-									],
-									[
-										5105,
-										5105
+										1706,
+										1706
 									]
 								],
 								"scope": "bookmarks"
@@ -655,19 +617,20 @@
 						"selection":
 						[
 							[
-								3041,
-								3041
+								2624,
+								2624
 							]
 						],
 						"settings":
 						{
+							"auto_name": "\"\"\"",
 							"incomplete_sync": null,
+							"sftp_duplicate_views": 0,
 							"syntax": "Packages/Python/Python.sublime-syntax",
-							"translate_tabs_to_spaces": false,
 							"word_wrap": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1545.0,
+						"translation.y": 1051.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -675,19 +638,19 @@
 				},
 				{
 					"buffer": 2,
-					"file": "game.txt",
+					"file": "engines/littleBit.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 184,
+						"buffer_size": 5299,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								184,
-								184
+								612,
+								612
 							]
 						],
 						"settings":
@@ -695,79 +658,19 @@
 							"incomplete_sync": null,
 							"remote_loading": false,
 							"synced": false,
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false,
+							"word_wrap": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "diag.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 685,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								331,
-								331
-							]
-						],
-						"settings":
-						{
-							"auto_name": "import engines.littleBit as lb",
-							"incomplete_sync": null,
-							"syntax": "Packages/Python/Python.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "debug.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1096,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								320,
-								320
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 194.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
 					"file": "tourn.py",
 					"semi_transient": false,
 					"settings":
@@ -775,25 +678,12 @@
 						"buffer_size": 2160,
 						"regions":
 						{
-							"bookmarks":
-							{
-								"flags": 144,
-								"icon": "bookmark",
-								"regions":
-								[
-									[
-										1355,
-										1355
-									]
-								],
-								"scope": "bookmarks"
-							}
 						},
 						"selection":
 						[
 							[
-								2160,
-								2160
+								0,
+								0
 							]
 						],
 						"settings":
@@ -803,36 +693,6 @@
 							"synced": false,
 							"syntax": "Packages/Python/Python.sublime-syntax",
 							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 1011.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "engines/engine.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 346,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								153,
-								153
-							]
-						],
-						"settings":
-						{
-							"auto_name": "from ABC import abstractmethod",
-							"incomplete_sync": null,
-							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -842,7 +702,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 4,
 					"file": "GUI.py",
 					"semi_transient": false,
 					"settings":
@@ -854,8 +714,8 @@
 						"selection":
 						[
 							[
-								9726,
-								9689
+								9582,
+								9582
 							]
 						],
 						"settings":
@@ -867,7 +727,39 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 6468.0,
+						"translation.y": 6717.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "board2.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4440,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3430,
+								3430
+							]
+						],
+						"settings":
+						{
+							"auto_name": "\"\"\"",
+							"incomplete_sync": null,
+							"sftp_duplicate_views": 0,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"word_wrap": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 900.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,
@@ -909,7 +801,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 237.0
+		"height": 300.0
 	},
 	"output.find_results":
 	{
@@ -980,15 +872,6 @@
 	"selected_group": 0,
 	"settings":
 	{
-		"last_automatic_layout":
-		[
-			[
-				0,
-				0,
-				1,
-				1
-			]
-		]
 	},
 	"show_minimap": false,
 	"show_open_files": true,
