@@ -2,6 +2,7 @@ import random
 import operator
 import numpy as np
 from engines.engine import Engine
+from types import SimpleNamespace
 '''
 littleBit: Translate board position to a bit board 
 Does not select any move yet
@@ -65,27 +66,49 @@ class player(Engine):
 	Kings need to check in both directions
 	"""
 	def getMovers( self ):
+		n = self.getSideVars()		
+
+		movers =  n.forShift( self.emptySqs, 4 ) & n.onMove
+		movers |= n.forShift( self.emptySqs & n.forMsk3, 3 ) & n.onMove
+		movers |= n.forShift( self.emptySqs & n.forMsk5, 5 ) & n.onMove
+		if ( n.K ):
+			movers |= n.bacShift( self.emptySqs, 4 ) & n.onMove
+			movers |= n.bacShift( self.emptySqs & n.kgMsk3, 3 ) & n.K
+			movers |= n.bacShift( self.emptySqs & n.kgMsk5, 5 ) & n.K
+		return movers
+
+	# return pieces that can jump
+	def getJumpers( self ):
+		n = self.getSideVars()
+		jumpers = 0
+
+		Temp = n.forShift( self.emptySqs, 4 ) & n.enemy
+		jumpers |= ( n.forShift( (Temp & n.forMsk3), 3 ) | n.forShift( (Temp & n.forMsk5), 5 )) & n.onMove
+		Temp = (n.forShift( self.emptySqs & n.forMsk3, 3 ) | n.forShift( (self.emptySqs & n.forMsk5), 5)) & n.enemy
+		jumpers |= n.forShift( Temp, 4 ) & n.onMove
+		if n.K:
+			Temp = n.bacShift( self.emptySqs, 4 ) & n.enemy
+			jumpers |= (n.bacShift( ( Temp & n.kgMsk3 ), 3 ) | n.bacShift( ( Temp & n.kgMsk5 ), 5 )) & n.K
+			Temp = ( n.bacShift( self.emptySqs & n.kgMsk3, 3 ) | n.bacShift( (self.emptySqs & n.kgMsk5), 5) ) & n.enemy
+			jumpers |= n.bacShift( Temp, 4 ) & n.K
+		return jumpers
+
+	# set side of board variables
+	# depending on color, sets the direction of forward and backward moves
+	def getSideVars( self ):
+		d = {}
 		s = self.board.onMove
 
-		onMove = self.bp if s == 1 else self.rp
-		forShift = operator.rshift if s == 1 else operator.lshift 
-		bacShift = operator.lshift if s == 1 else operator.rshift
-		forMsk3 = self.MASK_R3 if s == 1 else self.MASK_L3
-		forMsk5 = self.MASK_R5 if s == 1 else self.MASK_L5
-		kgMsk3 = self.MASK_L3 if s == 1 else self.MASK_R3
-		kgMsk5 = self.MASK_L5 if s == 1 else self.MASK_R5
-		
-		K = onMove & self.k
-		empty = self.emptySqs
-
-		movers =  forShift( empty, 4 ) & onMove
-		movers |= forShift( empty & forMsk3, 3 ) & onMove
-		movers |= forShift( empty & forMsk5, 5 ) & onMove
-		if ( K ):
-			movers |= bacShift( empty, 4 ) & onMove
-			movers |= bacShift( empty & kgMsk3, 3 ) & onMove
-			movers |= bacShift( empty & kgMsk5, 5 ) & onMove
-		return movers
+		d['onMove'] = self.bp if s == 1 else self.rp
+		d['enemy'] = self.rp if s == 1 else self.bp
+		d['forShift'] = operator.rshift if s == 1 else operator.lshift 
+		d['bacShift'] = operator.lshift if s == 1 else operator.rshift
+		d['forMsk3'] = self.MASK_R3 if s == 1 else self.MASK_L3
+		d['forMsk5'] = self.MASK_R5 if s == 1 else self.MASK_L5
+		d['kgMsk3'] = self.MASK_L3 if s == 1 else self.MASK_R3
+		d['kgMsk5'] = self.MASK_L5 if s == 1 else self.MASK_R5
+		d['K'] = d['onMove'] & self.k
+		return SimpleNamespace(**d)
 
 	# create bit board representation from board.position 8x8 array
 	def convert2BB( self ):

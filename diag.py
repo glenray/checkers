@@ -7,7 +7,7 @@ import operator
 from debug import debug
 
 
-brd = Board('[FEN "B:W18,26,27,25,11,19:B15K"]')
+brd = Board('[FEN "B:W26,27,25,11K:B15K,14K"]')
 lb = littlebit(brd)
 db = debug()
 
@@ -16,7 +16,7 @@ brd.onMove = 1
 
 print( db.template )
 print( db.printBoard( lb ) )
-print( db.printBoard( lb, lb.getMovers() ) )
+print( db.printBoard( lb, lb.getJumpers() ) )
 
 print(db.bitHead,'\n')
 print(db.prBinary(lb.bp), 'Black')
@@ -24,3 +24,4 @@ print(db.prBinary(lb.rp), 'Red')
 print(db.prBinary(lb.k), 'Kings')
 print(db.prBinary(lb.emptySqs), 'Empty')
 print(db.prBinary(lb.getMovers()), 'Movers')
+print(db.prBinary(lb.getJumpers()), 'Jumpers')
