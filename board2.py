@@ -2,7 +2,7 @@ import re
 import copy
 
 """
-Checkers2
+Board2
 Glen Pritchard 6/25/2019
 - Update from board.py which used an 8x8 nested array
 - Maintain the state of a checkers board in a padded array of 46 elements
@@ -41,7 +41,41 @@ class Board:
 		self.initEmptyBoard()
 		self.parseFen()
 		
+
+	def reset(self):
+		self.__init__()
 	
+	def makeMove(self, move):
+		# if not move: return
+		pos = self.position
+		end = move[-1]
+		start = move[0]
+
+		pos[end] = pos[start]
+		pos[start] = 0
+
+		# jump moves, i.e. any move more than 5
+		if abs(move[0] - move[1]) > 5:
+			for i, sq in enumerate(move):
+				if i == 0: continue
+				pos[(move[i]+move[i-1])/2] = 0
+
+		# king piece on back row
+		if end in (37, 38, 29, 40) and pos[end] == self.WP: pos[end] = self.WK
+		if end in (5, 6, 7, 8) and pos[end] == self.BP: pos[end] = self.BK
+
+
+		print(self.onMove)
+		print(move)
+		self.printBoard()
+		print(self.position)
+		ans = input("Continue? ")
+		if ans == 'stop': exit()
+
+		# toggle side to move
+		self.onMove = -self.onMove
+
+
 	def getLegalMoves(self):
 		del self.legalMoves[:]
 		self.isJump = False
@@ -157,4 +191,14 @@ if __name__ == "__main__" :
 	print(a.templ)
 	a.printBoard()
 	a.getLegalMoves()
-	print(a.legalMoves)
+	color = 'Black' if a.onMove == 1 else "White"
+	print(f"{color} on Move")
+	for move in a.legalMoves:
+		print(move)
+	a.makeMove(a.legalMoves[0])
+	a.printBoard()
+	a.getLegalMoves()
+	color = 'Black' if a.onMove == 1 else "White"
+	print(f"{color} on Move")
+	for move in a.legalMoves:
+		print(move)

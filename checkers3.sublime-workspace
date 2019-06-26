@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"on",
+				"onMove"
+			],
+			[
 				"is",
 				"isJump"
 			],
@@ -161,20 +165,18 @@
 			}
 		},
 		{
-			"file": "board2.py",
+			"file": "engines/moron.py",
 			"settings":
 			{
-				"buffer_size": 4440,
-				"encoding": "UTF-8",
-				"line_ending": "Windows",
-				"name": "\"\"\""
+				"buffer_size": 645,
+				"line_ending": "Windows"
 			}
 		},
 		{
 			"file": "engines/littleBit.py",
 			"settings":
 			{
-				"buffer_size": 5299,
+				"buffer_size": 5323,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -183,7 +185,7 @@
 			"file": "tourn.py",
 			"settings":
 			{
-				"buffer_size": 2160,
+				"buffer_size": 2161,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -195,6 +197,19 @@
 				"buffer_size": 10114,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "import re\nimport copy\n\n\"\"\"\nBoard2\nGlen Pritchard 6/25/2019\n- Update from board.py which used an 8x8 nested array\n- Maintain the state of a checkers board in a padded array of 46 elements\n- Generates a list of legal moves in a given position, including multiple jumps\n- Updates the board state when one of the legal moves is selected\n- Ends the game when the side to move has no legal moves\n\"\"\"\nclass Board:\n\t\n\tdef __init__(self, startPos=None):\n\t\tself.templ = \"\"\"\n  --  --  --  --  --\n    37  38  39  40\n  32  33  34  35  --\n    28  29  30  31\n  23  24  25  26  --\n    19  20  21  22\n  14  15  16  17  --\n    10  11  12  13\n  05  06  07  08  --\n--  --  --  --  --\n\"\"\"\n\t\tself.OOB \t= -1  # out of bounds value\n\t\tself.EMPTY \t= 0\n\t\tself.BP \t= 1\n\t\tself.BK \t= 2\n\t\tself.WP \t= 3\n\t\tself.WK \t= 4\n\t\tself.onMove\t= None\n\t\tself.legalMoves = []\n\t\tself.isJump = False\n\t\tself.position= {}\n\t\tself.startFEN= '[FEN \"B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12\"]'\n\t\tself.startPos= startPos if startPos != None else self.startFEN\n\n\t\tself.initEmptyBoard()\n\t\tself.parseFen()\n\t\t\n\n\tdef reset(self):\n\t\tself.__init__()\n\t\n\tdef makeMove(self, move):\n\t\t# if not move: return\n\t\tpos = self.position\n\t\tend = move[-1]\n\t\tstart = move[0]\n\n\t\tpos[end] = pos[start]\n\t\tpos[start] = 0\n\n\t\t# jump moves, i.e. any move more than 5\n\t\tif abs(move[0] - move[1]) > 5:\n\t\t\tfor i, sq in enumerate(move):\n\t\t\t\tif i == 0: continue\n\t\t\t\tpos[(move[i]+move[i-1])/2] = 0\n\n\t\t# king piece on back row\n\t\tif end in (37, 38, 29, 40) and pos[end] == self.WP: pos[end] = self.WK\n\t\tif end in (5, 6, 7, 8) and pos[end] == self.BP: pos[end] = self.BK\n\n\n\t\tprint(self.onMove)\n\t\tprint(move)\n\t\tself.printBoard()\n\t\tans = input(\"Continue? \")\n\t\tif ans == 'stop': exit()\n\n\t\t# toggle side to move\n\t\tself.onMove = -self.onMove\n\n\n\tdef getLegalMoves(self):\n\t\tdel self.legalMoves[:]\n\t\tself.isJump = False\n\t\tside = (self.BP,self.BK) if self.onMove == 1 else (self.WP,self.BP)\n\t\tfor sq in self.position:\n\t\t\tif self.position[sq] not in (side): continue\n\t\t\tself.getJumpMove(sq)\n\t\t\tif self.isJump == False:\n\t\t\t\tself.getNormalMove(sq)\n\n\t\n\tdef getNormalMove(self, sq):\n\t\t# kings look forward and backward for a move\n\t\tisKing = self.position[sq] % 2 == 0\n\t\tOM = self.onMove\n\t\tdirections = [-OM, OM] if isKing else [-OM]\n\t\tfor target in (4,5):\n\t\t\tfor direction in directions:\n\t\t\t\tif self.position[sq+(direction*target)] == self.EMPTY:\n\t\t\t\t\tself.legalMoves.append([sq, sq+(direction*target)])\n\t\n\t\n\tdef getJumpMove(self, sq, position=None, moves=[]):\n\t\tif position == None: \n\t\t\tposition = self.position\n\t\t# kings look forward and backward for a move\n\t\tisKing = self.position[sq] % 2 == 0\n\t\tOM = self.onMove\n\t\tdirections = [-OM, OM] if isKing else [-OM]\n\t\tenemy = (1,2) if OM == -1 else (3,4)\n\t\tnewMoves = None\n\t\t# all pieces look left and right\n\t\tfor target in (4,5):\n\t\t\tfor direction in directions:\n\t\t\t\tenemySq = sq+(direction*target)\n\t\t\t\tlandingSq = sq+(direction*target*2)\n\t\t\t\tif position[enemySq] in (enemy):\n\t\t\t\t\tif position[landingSq] == self.EMPTY:\n\t\t\t\t\t\tif self.isJump == False:\n\t\t\t\t\t\t\tself.isJump = True\n\t\t\t\t\t\t\tdel self.legalMoves[:]\n\t\t\t\t\t\t\n\t\t\t\t\t\tnewPosition = copy.deepcopy(position)\n\t\t\t\t\t\t# copy current piece to new position\n\t\t\t\t\t\tnewPosition[landingSq] = newPosition[sq]\n\t\t\t\t\t\t# clear current piece square\n\t\t\t\t\t\tnewPosition[sq] = 0\n\t\t\t\t\t\t# remove jumped piece\n\t\t\t\t\t\tnewPosition[enemySq] = 0\n\t\t\t\t\t\tnewMoves = [sq, landingSq] if moves == [] else moves+[landingSq]\n\t\t\t\t\t\tself.getJumpMove(landingSq, newPosition, newMoves)\n\t\t# at this point, the piece on move has looked in all directions and there are no further jumps; otherwise, the code would have recursed above.\n\t\t# if newMoves is still None, then the piece has looked in all legal directions without finding a jump\n\t\t# if moves is not empty, then jumps were found on previous iterations\n\t\t# if both are true, then this line of moves is the end of the line of jumps and should be added to the legal move list\n\t\t# if both conditions are not true, then there are no jump moves to add for this piece. The method will not return anything, and getLegalMoves() will continue processing the pieces.\n\t\tif newMoves == None and moves:\n\t\t\tself.legalMoves.append(moves)\n\n\t\n\tdef initEmptyBoard(self):\n\t\t# init empty position\n\t\toffLimits = [0,1,2,3,4,9,18,27,36,41,42,43,44,45]\n\t\tfor sq in range(0, 46):\n\t\t\tself.position[sq] = self.OOB if sq in offLimits else self.EMPTY\n\n\n\tdef printBoard(self, position=None):\n\t\tposition = self.position if position==None else position\n\t\toffset = \"  \"\n\t\tfor start in [37, 32, 28, 23, 19, 14, 10, 5]:\n\t\t\toutput = ''\n\t\t\tfor row in range(0,4):\n\t\t\t\tsq = position[start+row]\n\t\t\t\tchar = 'b' if sq in (1,2) else 'w'\n\t\t\t\tchar = char.upper() if sq %2 == 0 else char\n\t\t\t\tif sq == 0: char='-'\n\t\t\t\toutput += char+\"   \"\n\t\t\tprint(offset, output)\n\t\t\toffset = '' if offset == \"  \" else \"  \"\n\n\n\tdef parseFen(self, position=None):\n\t\t# Array to convert FEN square no to self.position index value\n\t\t# idx+1 is FEN sq position; value is index to self.position array\n\t\tFEN2Pos = [37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22,14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8]\n\n\t\tif position==None:\n\t\t\tposition = self.startPos\n\n\t\tposition = re.findall(r'\"([^\"]*)\"', position)\n\t\tsides = position[0].split(':')\n\t\tself.onMove = 1 if sides[0] == 'B' else -1\n\t\tpieces = {\n\t\t\t\"white\": (sides[1][1:] if sides[1].startswith('W') else sides[1]).split(','),\n\t\t\t\"black\": (sides[2][1:] if sides[2].startswith('B') else sides[2]).split(',')\n\t\t}\n\t\t\n\t\tfor color in pieces:\n\t\t\tfor sq in pieces[color]:\n\t\t\t\tpColor = self.BP if color == 'black' else self.WP\n\t\t\t\tif sq[-1:] == 'K':\n\t\t\t\t\t# add 1 to convert piece to king not matter color, then remove K designation\n\t\t\t\t\tpColor = pColor+1\n\t\t\t\t\tsq = sq[:-1]\n\t\t\t\t\n\t\t\t\tself.position[FEN2Pos[int(sq)-1]] = pColor\n\n\nif __name__ == \"__main__\" :\n\tpos = '[FEN \"B:W18,26,27,25,11,19:B15K\"]'\n\ta = Board(pos)\n\tprint(a.templ)\n\ta.printBoard()\n\ta.getLegalMoves()\n\tcolor = 'Black' if a.onMove == 1 else \"White\"\n\tprint(f\"{color} on Move\")\n\tfor move in a.legalMoves:\n\t\tprint(move)\n\ta.makeMove(a.legalMoves[0])\n\ta.printBoard()\n\ta.getLegalMoves()\n\tcolor = 'Black' if a.onMove == 1 else \"White\"\n\tprint(f\"{color} on Move\")\n\tfor move in a.legalMoves:\n\t\tprint(move)",
+			"file": "board2.py",
+			"file_size": 6415,
+			"file_write_time": 132060502659184384,
+			"settings":
+			{
+				"buffer_size": 6189,
+				"encoding": "UTF-8",
+				"line_ending": "Windows",
+				"name": "\"\"\""
 			}
 		}
 	],
@@ -320,6 +335,7 @@
 	],
 	"file_history":
 	[
+		"/C/Users/Glen.WS-04/Documents/python/checkers/board2.py",
 		"/C/Users/Glen.WS-04/Documents/python/checkers/game.pyw",
 		"/C/Users/Glen.WS-04/Documents/python/checkers/engines/materialGirl.py",
 		"/C/Users/Glen/Documents/python/checkers3/game.txt",
@@ -446,8 +462,7 @@
 		"/C/Users/Glen/Dropbox/Sublime/Projects/pncEMScript/extractContacts.php",
 		"/C/Users/Glen/Dropbox/Keys/cplSiteground.ppk",
 		"/C/Program Files/PuTTY/README.txt",
-		"/C/Users/Glen/Dropbox/Clark Perdue & List/Dev Site Files/notes.txt",
-		"/C/xampp/apache/conf/extra/httpd-vhosts.conf"
+		"/C/Users/Glen/Dropbox/Clark Perdue & List/Dev Site Files/notes.txt"
 	],
 	"find":
 	{
@@ -555,7 +570,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 5,
 			"sheets":
 			[
 				{
@@ -571,8 +586,8 @@
 						"selection":
 						[
 							[
-								3853,
-								3853
+								1479,
+								1513
 							]
 						],
 						"settings":
@@ -585,97 +600,19 @@
 							"word_wrap": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2880.0,
+						"translation.y": 720.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "board2.py",
-					"semi_transient": false,
+					"file": "engines/moron.py",
+					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 4440,
-						"regions":
-						{
-							"bookmarks":
-							{
-								"flags": 144,
-								"icon": "bookmark",
-								"regions":
-								[
-									[
-										1706,
-										1706
-									]
-								],
-								"scope": "bookmarks"
-							}
-						},
-						"selection":
-						[
-							[
-								2624,
-								2624
-							]
-						],
-						"settings":
-						{
-							"auto_name": "\"\"\"",
-							"incomplete_sync": null,
-							"sftp_duplicate_views": 0,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"word_wrap": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1051.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "engines/littleBit.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5299,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								612,
-								612
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"translate_tabs_to_spaces": false,
-							"word_wrap": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "tourn.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2160,
+						"buffer_size": 645,
 						"regions":
 						{
 						},
@@ -698,7 +635,72 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "engines/littleBit.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5323,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false,
+							"word_wrap": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
 					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "tourn.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2161,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								399,
+								399
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 360.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -730,24 +732,24 @@
 						"translation.y": 6717.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 1,
+					"buffer": 5,
 					"file": "board2.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4440,
+						"buffer_size": 6189,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3430,
-								3430
+								1661,
+								1661
 							]
 						],
 						"settings":
@@ -759,10 +761,10 @@
 							"word_wrap": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 900.0,
+						"translation.y": 2400.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
