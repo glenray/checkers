@@ -9,6 +9,11 @@ Glen Pritchard 6/25/2019
 - Generates a list of legal moves in a given position, including multiple jumps
 - Updates the board state when one of the legal moves is selected
 - Ends the game when the side to move has no legal moves
+"""
+class Board:
+	
+	def __init__(self, startPos=None):
+		self.templ = """
   --  --  --  --  --
     37  38  39  40
   32  33  34  35  --
@@ -20,8 +25,6 @@ Glen Pritchard 6/25/2019
   05  06  07  08  --
 --  --  --  --  --
 """
-class Board:
-	def __init__(self, startPos=None):
 		self.OOB 	= -1  # out of bounds value
 		self.EMPTY 	= 0
 		self.BP 	= 1
@@ -49,6 +52,7 @@ class Board:
 			if self.isJump == False:
 				self.getNormalMove(sq)
 
+	
 	def getNormalMove(self, sq):
 		# kings look forward and backward for a move
 		isKing = self.position[sq] % 2 == 0
@@ -58,6 +62,7 @@ class Board:
 			for direction in directions:
 				if self.position[sq+(direction*target)] == self.EMPTY:
 					self.legalMoves.append([sq, sq+(direction*target)])
+	
 	
 	def getJumpMove(self, sq, position=None, moves=[]):
 		if position == None: 
@@ -71,33 +76,46 @@ class Board:
 		# all pieces look left and right
 		for target in (4,5):
 			for direction in directions:
-				if self.position[sq+(direction*target)] in (enemy):
-					if self.position[sq+(direction*target*2)] == self.EMPTY:
+				enemySq = sq+(direction*target)
+				landingSq = sq+(direction*target*2)
+				if position[enemySq] in (enemy):
+					if position[landingSq] == self.EMPTY:
 						if self.isJump == False:
 							self.isJump = True
 							del self.legalMoves[:]
 						
 						newPosition = copy.deepcopy(position)
-						newPosition[sq+(direction*target*2)] = newPosition[sq]
+						# copy current piece to new position
+						newPosition[landingSq] = newPosition[sq]
+						# clear current piece square
 						newPosition[sq] = 0
-						newPosition[sq+(direction*target)] = 0
-						newMoves = moves+[sq, sq+(direction*target*2)] if moves == [] else moves+[sq+(direction*target*2)]
-						self.getJumpMove(sq+(direction*target*2), newPosition, newMoves)
+						# remove jumped piece
+						newPosition[enemySq] = 0
+						newMoves = [sq, landingSq] if moves == [] else moves+[landingSq]
+						self.getJumpMove(landingSq, newPosition, newMoves)
+		# at this point, the piece on move has looked in all directions and there are no further jumps; otherwise, the code would have recursed above.
+		# if newMoves is still None, then the piece has looked in all legal directions without finding a jump
+		# if moves is not empty, then jumps were found on previous iterations
+		# if both are true, then this line of moves is the end of the line of jumps and should be added to the legal move list
+		# if both conditions are not true, then there are no jump moves to add for this piece. The method will not return anything, and getLegalMoves() will continue processing the pieces.
 		if newMoves == None and moves:
-			self.legalMoves.append([sq, sq+(direction*target*2)])
+			self.legalMoves.append(moves)
 
+	
 	def initEmptyBoard(self):
 		# init empty position
 		offLimits = [0,1,2,3,4,9,18,27,36,41,42,43,44,45]
 		for sq in range(0, 46):
 			self.position[sq] = self.OOB if sq in offLimits else self.EMPTY
 
-	def printBoard(self):
+
+	def printBoard(self, position=None):
+		position = self.position if position==None else position
 		offset = "  "
 		for start in [37, 32, 28, 23, 19, 14, 10, 5]:
 			output = ''
 			for row in range(0,4):
-				sq = self.position[start+row]
+				sq = position[start+row]
 				char = 'b' if sq in (1,2) else 'w'
 				char = char.upper() if sq %2 == 0 else char
 				if sq == 0: char='-'
@@ -136,6 +154,7 @@ class Board:
 if __name__ == "__main__" :
 	pos = '[FEN "B:W18,26,27,25,11,19:B15K"]'
 	a = Board(pos)
+	print(a.templ)
 	a.printBoard()
 	a.getLegalMoves()
 	print(a.legalMoves)
