@@ -3,7 +3,7 @@ Run tournament between 2 engines
 '''
 import sys
 import importlib
-from board import Board as board
+from board2 import Board as board
 from debug import debug
 import pkgutil
 
