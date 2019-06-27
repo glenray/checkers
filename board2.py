@@ -83,7 +83,7 @@ class Board:
 	def getLegalMoves(self):
 		del self.legalMoves[:]
 		self.isJump = False
-		side = (self.BP,self.BK) if self.onMove == 1 else (self.WP,self.BP)
+		side = (self.BP,self.BK) if self.onMove == 1 else (self.WP,self.WK)
 		for sq in self.position:
 			if self.position[sq] not in (side): continue
 			self.getJumpMove(sq)
