@@ -37,6 +37,9 @@ class Board:
 		self.position= {}
 		self.startFEN= '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]'
 		self.startPos= startPos if startPos != None else self.startFEN
+		# Array to convert FEN square no to self.position index value
+		# idx+1 is FEN sq position; value is index to self.position array
+		self.FEN2Pos = [37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22,14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8]
 
 		self.initEmptyBoard()
 		self.parseFen()
@@ -46,6 +49,7 @@ class Board:
 		self.__init__()
 	
 	def makeMove(self, move):
+		print(self.legalMoves)
 		# if not move: return
 		pos = self.position
 		end = move[-1]
@@ -68,7 +72,7 @@ class Board:
 		print(self.onMove)
 		print(move)
 		self.printBoard()
-		print(self.position)
+		print(self.pos2Fen())
 		ans = input("Continue? ")
 		if ans == 'stop': exit()
 
@@ -157,12 +161,8 @@ class Board:
 			print(offset, output)
 			offset = '' if offset == "  " else "  "
 
-
+	# import position from FEN string
 	def parseFen(self, position=None):
-		# Array to convert FEN square no to self.position index value
-		# idx+1 is FEN sq position; value is index to self.position array
-		FEN2Pos = [37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22,14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8]
-
 		if position==None:
 			position = self.startPos
 
@@ -182,12 +182,28 @@ class Board:
 					pColor = pColor+1
 					sq = sq[:-1]
 				
-				self.position[FEN2Pos[int(sq)-1]] = pColor
+				self.position[self.FEN2Pos[int(sq)-1]] = pColor
+
+	# create FEN string from current position
+	def pos2Fen(self):
+		black = blacksep = white = whitesep = ""
+		onMove = "B" if self.onMove == 1 else "W"
+		for sq in self.position:
+			if self.position[sq] > 0:
+				sqNo = str(self.FEN2Pos.index(sq)+1)
+				king = "K" if self.position[sq]%2 == 0 else ""
+				if self.position[sq] > 2:
+					white += f"{whitesep}{sqNo}{king}"
+					whitesep = ","
+				else:
+					black += f"{blacksep}{sqNo}{king}"
+					blacksep = ","
+		return f'[FEN "{onMove}:W{white}:B{black}"]'
 
 
 if __name__ == "__main__" :
 	pos = '[FEN "B:W18,26,27,25,11,19:B15K"]'
-	a = Board(pos)
+	a = Board()
 	print(a.templ)
 	a.printBoard()
 	a.getLegalMoves()
