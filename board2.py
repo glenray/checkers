@@ -46,7 +46,7 @@ class Board:
 		del self.legalMoves[:]
 		self.isJump = False
 		side = (self.BP,self.BK) if self.onMove == 1 else (self.WP,self.BP)
-		for sq in self.position:
+		for sq in self.position[sq]:
 			if self.position[sq] not in (side): continue
 			self.getJumpMove(sq)
 			if self.isJump == False:
@@ -80,10 +80,10 @@ class Board:
 				landingSq = sq+(direction*target*2)
 				if position[enemySq] in (enemy):
 					if position[landingSq] == self.EMPTY:
+						# when first jump is detected, clear the move list
 						if self.isJump == False:
 							self.isJump = True
 							del self.legalMoves[:]
-						
 						newPosition = copy.deepcopy(position)
 						# copy current piece to new position
 						newPosition[landingSq] = newPosition[sq]

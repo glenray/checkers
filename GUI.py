@@ -359,5 +359,5 @@ if __name__ == "__main__" :
 		# In this position, snap as white will rock between 32 and 28 indefinitely. Black on move is unable to win or lose, and the game will continue forever. In the same position with white on move, playing randomly, can eventually blunder into a loss.
 		"deadDraw"		: '[FEN "B:W32K:B26K"]',
 	}
-	b = board.Board(positions['deadDraw'])
+	b = board.Board()
 	a = GUI(b)
