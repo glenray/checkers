@@ -49,8 +49,8 @@ class Board:
 		self.__init__()
 	
 	def makeMove(self, move):
-		print(self.legalMoves)
-		# if not move: return
+		# if the move list is empty, the game is over
+		if not move: return
 		pos = self.position
 		end = move[-1]
 		start = move[0]
@@ -65,16 +65,8 @@ class Board:
 				pos[(move[i]+move[i-1])/2] = 0
 
 		# king piece on back row
-		if end in (37, 38, 29, 40) and pos[end] == self.WP: pos[end] = self.WK
+		if end in (37, 38, 39, 40) and pos[end] == self.WP: pos[end] = self.WK
 		if end in (5, 6, 7, 8) and pos[end] == self.BP: pos[end] = self.BK
-
-
-		print(self.onMove)
-		print(move)
-		self.printBoard()
-		print(self.pos2Fen())
-		ans = input("Continue? ")
-		if ans == 'stop': exit()
 
 		# toggle side to move
 		self.onMove = -self.onMove
@@ -106,7 +98,7 @@ class Board:
 		if position == None: 
 			position = self.position
 		# kings look forward and backward for a move
-		isKing = self.position[sq] % 2 == 0
+		isKing = position[sq] % 2 == 0
 		OM = self.onMove
 		directions = [-OM, OM] if isKing else [-OM]
 		enemy = (1,2) if OM == -1 else (3,4)
