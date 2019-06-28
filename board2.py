@@ -152,6 +152,7 @@ class Board:
 			offset = '' if offset == "  " else "  "
 
 	# import position from FEN string
+	# TODO According to wiki article, K should come before the square number, not after
 	def parseFen(self, position=None):
 		if position==None:
 			position = self.startPos
