@@ -98,10 +98,10 @@ class Board:
 		if position == None: 
 			position = self.position
 		# kings look forward and backward for a move
-		isKing = position[sq] % 2 == 0
+		isKing = position[sq] in (self.WK, self.BK)
 		OM = self.onMove
 		directions = [-OM, OM] if isKing else [-OM]
-		enemy = (1,2) if OM == -1 else (3,4)
+		enemy = (self.BP, self.WK) if OM == -1 else (self.WP, self.WK)
 		newMoves = None
 		# all pieces look left and right
 		for target in (4,5):
@@ -110,16 +110,14 @@ class Board:
 				landingSq = sq+(direction*target*2)
 				if position[enemySq] in (enemy):
 					if position[landingSq] == self.EMPTY:
-						# when first jump is detected, clear the move list
+						# if this is the first jump detected, clear the move list
 						if self.isJump == False:
 							self.isJump = True
 							del self.legalMoves[:]
 						newPosition = copy.deepcopy(position)
-						# copy current piece to new position
+						# move piece to landing square; clear origin and enemy squares
 						newPosition[landingSq] = newPosition[sq]
-						# clear current piece square
 						newPosition[sq] = 0
-						# remove jumped piece
 						newPosition[enemySq] = 0
 						newMoves = [sq, landingSq] if moves == [] else moves+[landingSq]
 						self.getJumpMove(landingSq, newPosition, newMoves)

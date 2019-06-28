@@ -358,6 +358,7 @@ if __name__ == "__main__" :
 		"kingJump"		: '[FEN "B:W17,26,25:B23"]',
 		# In this position, snap as white will rock between 32 and 28 indefinitely. Black on move is unable to win or lose, and the game will continue forever. In the same position with white on move, playing randomly, can eventually blunder into a loss.
 		"deadDraw"		: '[FEN "B:W32K:B26K"]',
+		"royalTour"		: '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	}
 	b = board.Board()
 	a = GUI(b)
