@@ -101,7 +101,7 @@ class Board:
 		isKing = position[sq] in (self.WK, self.BK)
 		OM = self.onMove
 		directions = [-OM, OM] if isKing else [-OM]
-		enemy = (self.BP, self.WK) if OM == -1 else (self.WP, self.WK)
+		enemy = (self.BP, self.BK) if OM == -1 else (self.WP, self.WK)
 		newMoves = None
 		# all pieces look left and right
 		for target in (4,5):
