@@ -1,4 +1,5 @@
 import random
+import re
 import operator
 import numpy as np
 from engines.engine import Engine
@@ -44,19 +45,21 @@ class player(Engine):
 	@property
 	def name(self):
 		return self._name
+	
+
 	@property
 	def desc(self):
 		return self._desc
-	def selectMove(self):
-		self.convert2BB()
+	
+
+	def selectMove(self, position, moves):
+		if moves: self.convert2BB(position)
 
 		# pick random move any way
-		self.board.getLegalMoves()
-		moveList = self.board.legalMoves
-		moveLen = len(moveList)
+		moveLen = len(moves)
 		if moveLen > 0:
 			moveNo = random.randint(0, moveLen-1)
-			return moveList[moveNo]
+			return moves[moveNo]
 
 	"""
 	Identify which pieces on move have a valid non-jump move
@@ -112,17 +115,36 @@ class player(Engine):
 		return SimpleNamespace(**d)
 
 	# create bit board representation from board.position 8x8 array
-	def convert2BB( self ):
-		position = self.board.position
-		i = 0
-		for x, row in enumerate(position):
-			for y, sq in enumerate(row):
-				# only set the dark squares
-				# dark squares are when row and column numbers are not both even or both odd
-				if ( x%2 != y%2 ):
-					self.setSq( sq, i )
-					i+=1
-		# No we can extract other useful information
+	def convert2BB( self, position ):
+		position = re.findall(r'"([^"]*)"', position)
+		sides = position[0].split(':')
+		self.onMove = 1 if sides[0] == 'B' else -1
+		pieces = {
+			"white": (sides[1][1:] if sides[1].startswith('W') else sides[1]).split(','),
+			"black": (sides[2][1:] if sides[2].startswith('B') else sides[2]).split(',')
+		}
+		
+		for color in pieces:
+			for sq in pieces[color]:
+				pColor = 1 if color == 'black' else 3
+				if sq[0] == 'K':
+					# add 1 to convert piece to king no matter color, then remove K designation
+					pColor = pColor+1
+					sq = sq[1:]
+				self.setSq(pColor, int(sq)-1)
+
+
+				
+		# i = 0
+		# for x, row in enumerate(position):
+		# 	for y, sq in enumerate(row):
+		# 		# only set the dark squares
+		# 		# dark squares are when row and column numbers are not both even or both odd
+		# 		if ( x%2 != y%2 ):
+		# 			self.setSq( sq, i )
+		# 			i+=1
+
+		# Now we can extract other useful information
 		# Empty Squares
 		self.emptySqs = np.uint32(~(self.rp | self.bp ))
 

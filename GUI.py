@@ -14,8 +14,8 @@ Glen Pritchard 6/17/2018
 class GUI:
 	def __init__(self, board):
 		self.board = board
-		self.bPlayer = moron(self.board)
-		self.wPlayer = snap(self.board)
+		self.bPlayer = 'human'
+		self.wPlayer = 'human'
 		self.lightSqColor = "yellow"
 		self.darkSqColor = "blue"
 		self.litSqColor = "gray75"
@@ -221,6 +221,7 @@ class GUI:
 			self.lightSqColor : self.darkSqColor, 
 			self.darkSqColor : self.lightSqColor}
 		sqColor = self.lightSqColor
+		sqNum = 1
 		for row in range(8):
 			for col in range(8):
 				self.canvas.create_rectangle(
@@ -230,6 +231,13 @@ class GUI:
 					yPos+self.sqSize, 
 					fill=sqColor,
 				)
+				if sqColor == self.darkSqColor:
+					self.canvas.create_text(
+						(xPos+8, yPos+8),
+						fill="white",
+						text = str(sqNum)
+					)
+					sqNum += 1
 				sqColor = flipColor[sqColor]
 				xPos += self.sqSize
 			yPos += self.sqSize
@@ -351,14 +359,24 @@ class GUI:
 if __name__ == "__main__" :
 	positions = {
 		"normalStart"	: '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]',
-		"jump"			: '[FEN "B:W18,19,10:B15K"]',
-		"one"			: '[FEN "W:W21K,25K:B9K,10,11,12"]',
-		"multiJumpA"	: '[FEN "B:W18,26,27,25,11,19:B15K"]',
-		"multiJumpB"	: '[FEN "B:W18,26,27,25,11,19:B15K,14K"]',
+		"jump"			: '[FEN "B:W18,19,10:BK15"]',
+		"one"			: '[FEN "W:WK21,K25:BK9,10,11,12"]',
+		"multiJumpA"	: '[FEN "B:W18,26,27,25,11,19:BK15"]',
+		"multiJumpB"	: '[FEN "B:W18,26,27,25,11,19:BK15,K14"]',
 		"kingJump"		: '[FEN "B:W17,26,25:B23"]',
 		# In this position, snap as white will rock between 32 and 28 indefinitely. Black on move is unable to win or lose, and the game will continue forever. In the same position with white on move, playing randomly, can eventually blunder into a loss.
-		"deadDraw"		: '[FEN "B:W32K:B26K"]',
+		"deadDraw"		: '[FEN "B:WK32:BK26"]',
 		"royalTour"		: '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	}
-	b = board.Board()
+	"""
+	{27-24 Beginning a spectacular shot in which White pitches (almost) all his men
+} 1. 19-15 10x19 2. 5-1 3x10 3. 11-8 4x11 4. 27-24 20x27 5. 18-14 9x18 6. 1-5
+2x9 {2-9 and now the coup de grace that inspired the name of this problem...}
+7. 5x32 {5-32 (Several different jumping sequences are possible, for example 5
+x 14 x 7 x 16 x 23 x 14 x 21 x 30 x 23 x 32) White Wins. As an interesting side
+note, this nine-piece jump is the theoretical maximum number of pieces it is
+possible to jump in a single turn in checkers (try setting up a 10-piece jump -
+the board lacks sufficient space!)} 1-0
+"""
+	b = board.Board(positions['multiJumpA'])
 	a = GUI(b)

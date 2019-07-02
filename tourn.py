@@ -9,7 +9,7 @@ import pkgutil
 
 class Tourn():
 
-	def __init__(self, bEngine=None, wEngine=None, n=None):
+	def __init__(self):
 		self.b = board()
 		self.db = debug()
 		self.red = 0		# red win count
@@ -17,13 +17,7 @@ class Tourn():
 		self.draw = 0		# draw count
 		self.mostMoves = 0
 
-		if None in (wEngine, bEngine, n):
-			self.getUserInput()
-		else:
-			self.bp = getattr(importlib.import_module("engines." + bEngine), 'player')(self.b)
-			self.rp = getattr(importlib.import_module("engines." + wEngine), 'player')(self.b)
-			self.n = n
-
+		self.getUserInput()
 		self.runTournament()
 		self.printResult()
 
@@ -48,14 +42,15 @@ class Tourn():
 			moveNo = 1
 			self.b.getLegalMoves()
 			while self.b.legalMoves and isdraw == False:
-				self.diagOutput()
 				# select player on move
 				player = self.bp if self.b.onMove == 1 else self.rp
-				move = player.selectMove()
+				# ask engine to select move
+				move = player.selectMove(self.b.pos2Fen(), self.b.legalMoves2FEN())
 				moveNo +=1
 				# declare draw if 1000 moves without victory
 				if moveNo == 1000:
 					isdraw = True
+				# make move selected by engine
 				self.b.makeMove(move)
 
 			# update counters; print game message
@@ -76,14 +71,6 @@ class Tourn():
 			# start the next game
 			self.b.reset()
 
-	def diagOutput(self):
-		print("________")
-		self.b.getLegalMoves()
-		print(f"{'Black' if self.b.onMove == 1 else 'White'} to move")
-		self.b.printBoard()
-		print(self.b.legalMoves)
-		print(self.b.pos2Fen())
-
 	def printResult( self ):
 		# print final tournament results
 		print("\nTournament Results")
@@ -93,4 +80,4 @@ class Tourn():
 		print(f"Most Moves (when game not a draw): {self.mostMoves}")
 
 if __name__ == "__main__" :
-	Tourn("moron", "snap", 5)
+	Tourn()

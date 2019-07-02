@@ -20,10 +20,8 @@ class player( Engine ):
 	def desc(self):
 		return self._desc
 	
-	def selectMove(self):
-		self.board.getLegalMoves()
-		moveList = self.board.legalMoves
-		moveLen = len(moveList)
+	def selectMove(self, position, moves):
+		moveLen = len(moves)
 		if moveLen > 0:
 			moveNo = random.randint(0, moveLen-1)
-			return moveList[moveNo]
+			return moves[moveNo]

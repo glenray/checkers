@@ -200,9 +200,9 @@ class Board:
 		for side in ('white', 'black'):
 			for x in pieces[side]:
 				squareNo = x[1:]  if x.startswith('W') or x.startswith('B') else x 
-				if x.endswith('K'):
+				if squareNo.startswith('K'):
 					isKing = True
-					squareNo = squareNo[:-1]
+					squareNo = squareNo[1:]
 				else:
 					isKing = False
 				self.setSquare((isKing, int(squareNo), side))

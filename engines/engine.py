@@ -15,7 +15,7 @@ class Engine(ABC):
 		pass
 
 	@abstractmethod
-	def selectMove( self ):
+	def selectMove( self, position, moves ):
 		pass
 
 	def __repr__(self):

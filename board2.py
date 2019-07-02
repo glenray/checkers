@@ -40,6 +40,7 @@ class Board:
 		# Array to convert FEN square no to self.position index value
 		# idx+1 is FEN sq position; value is index to self.position array
 		self.FEN2Pos = [37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22,14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8]
+		self.pos2FEN = {v:k+1 for k,v in enumerate(self.FEN2Pos)}
 
 		self.initEmptyBoard()
 		self.parseFen()
@@ -51,6 +52,9 @@ class Board:
 	def makeMove(self, move):
 		# if the move list is empty, the game is over
 		if not move: return
+		# convert FEN move numbers to internal board array indexes
+		move = self.FEN2legalMoves(move)
+
 		pos = self.position
 		end = move[-1]
 		start = move[0]
@@ -82,12 +86,24 @@ class Board:
 			if self.isJump == False:
 				self.getNormalMove(sq)
 
+	# convert every element in list from internal board array to FEN position
+	def legalMoves2FEN(self, lists = None):
+		if lists == None: 
+			self.getLegalMoves()
+			lists = self.legalMoves
+		return [self.pos2FEN[el] if not isinstance(el,list) else self.legalMoves2FEN(el) for el in lists]
+
+	def FEN2legalMoves(self, moves):
+		returnArray = []
+		for move in moves:
+			returnArray.append(self.FEN2Pos[move-1])
+		return returnArray
+
 	
 	def getNormalMove(self, sq):
 		# kings look forward and backward for a move
-		isKing = self.position[sq] % 2 == 0
-		OM = self.onMove
-		directions = [-OM, OM] if isKing else [-OM]
+		isKing = self.position[sq] in (self.WK, self.BK)
+		directions = [-self.onMove, self.onMove] if isKing else [-self.onMove]
 		for target in (4,5):
 			for direction in directions:
 				if self.position[sq+(direction*target)] == self.EMPTY:
@@ -99,28 +115,26 @@ class Board:
 			position = self.position
 		# kings look forward and backward for a move
 		isKing = position[sq] in (self.WK, self.BK)
-		OM = self.onMove
-		directions = [-OM, OM] if isKing else [-OM]
-		enemy = (self.BP, self.BK) if OM == -1 else (self.WP, self.WK)
+		directions = [-self.onMove, self.onMove] if isKing else [-self.onMove]
+		enemy = (self.BP, self.BK) if self.onMove == -1 else (self.WP, self.WK)
 		newMoves = None
 		# all pieces look left and right
 		for target in (4,5):
 			for direction in directions:
 				enemySq = sq+(direction*target)
 				landingSq = sq+(direction*target*2)
-				if position[enemySq] in (enemy):
-					if position[landingSq] == self.EMPTY:
-						# if this is the first jump detected, clear the move list
-						if self.isJump == False:
-							self.isJump = True
-							del self.legalMoves[:]
-						newPosition = copy.deepcopy(position)
-						# move piece to landing square; clear origin and enemy squares
-						newPosition[landingSq] = newPosition[sq]
-						newPosition[sq] = 0
-						newPosition[enemySq] = 0
-						newMoves = [sq, landingSq] if moves == [] else moves+[landingSq]
-						self.getJumpMove(landingSq, newPosition, newMoves)
+				if position[enemySq] in (enemy) and position[landingSq] == self.EMPTY:
+					# if this is the first jump detected, clear the move list
+					if self.isJump == False:
+						self.isJump = True
+						del self.legalMoves[:]
+					newPosition = copy.deepcopy(position)
+					# move piece to landing square; clear origin and enemy squares
+					newPosition[landingSq] = newPosition[sq]
+					newPosition[sq] = 0
+					newPosition[enemySq] = 0
+					newMoves = [sq, landingSq] if moves == [] else moves+[landingSq]
+					self.getJumpMove(landingSq, newPosition, newMoves)
 		# at this point, the piece on move has looked in all directions and there are no further jumps; otherwise, the code would have recursed above.
 		# if newMoves is still None, then the piece has looked in all legal directions without finding a jump
 		# if moves is not empty, then jumps were found on previous iterations
@@ -152,7 +166,6 @@ class Board:
 			offset = '' if offset == "  " else "  "
 
 	# import position from FEN string
-	# TODO According to wiki article, K should come before the square number, not after
 	def parseFen(self, position=None):
 		if position==None:
 			position = self.startPos
@@ -168,33 +181,36 @@ class Board:
 		for color in pieces:
 			for sq in pieces[color]:
 				pColor = self.BP if color == 'black' else self.WP
-				if sq[-1:] == 'K':
-					# add 1 to convert piece to king not matter color, then remove K designation
+				if sq[0] == 'K':
+					# add 1 to convert piece to king no matter color, then remove K designation
 					pColor = pColor+1
-					sq = sq[:-1]
+					sq = sq[1:]
 				
 				self.position[self.FEN2Pos[int(sq)-1]] = pColor
 
 	# create FEN string from current position
 	def pos2Fen(self):
-		black = blacksep = white = whitesep = ""
+		black = []
+		white = []
 		onMove = "B" if self.onMove == 1 else "W"
 		for sq in self.position:
 			if self.position[sq] > 0:
 				sqNo = str(self.FEN2Pos.index(sq)+1)
-				king = "K" if self.position[sq]%2 == 0 else ""
+				king = "K" if self.position[sq] in (self.BK, self.WK) else ""
 				if self.position[sq] > 2:
-					white += f"{whitesep}{sqNo}{king}"
-					whitesep = ","
+					white.append(f"{king}{sqNo}")
 				else:
-					black += f"{blacksep}{sqNo}{king}"
-					blacksep = ","
+					black.append(f"{king}{sqNo}")
+		black = ','.join(black)
+		white = ','.join(white)
 		return f'[FEN "{onMove}:W{white}:B{black}"]'
 
 
 if __name__ == "__main__" :
-	pos = '[FEN "B:W18,26,27,25,11,19:B15K"]'
+	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
 	a = Board()
+	print(a.pos2Fen())
+	exit()
 	print(a.templ)
 	a.printBoard()
 	a.getLegalMoves()
