@@ -25,6 +25,7 @@ class Board:
   05  06  07  08  --
 --  --  --  --  --
 """
+
 		self.OOB 	= -1  # out of bounds value
 		self.EMPTY 	= 0
 		self.BP 	= 1
@@ -209,8 +210,8 @@ class Board:
 if __name__ == "__main__" :
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
 	a = Board()
-	print(a.pos2Fen())
-	exit()
+	# print(a.pos2Fen())
+	# exit()
 	print(a.templ)
 	a.printBoard()
 	a.getLegalMoves()
