@@ -11,6 +11,9 @@ class GUI:
 		self.sqLabels = []		# list of ids for dark square number labels
 
 		self.createWidgets()
+		self.createCanvasObjects()
+		self.positionCanvasObjects()
+		
 		self.root.mainloop()
 
 	def createWidgets(self):
@@ -34,32 +37,21 @@ class GUI:
 
 		# Frame for control panel
 		self.controlFrame = tk.Frame(self.pWindow, bg="pink")
+
+		# Button Bar Frame
+		self.buttonBarFrame = tk.Frame(self.controlFrame, bg="blue")
+		self.buttonBarFrame.pack(anchor="n", fill='x', expand=1)
+
+		# Button Bar Label
+		self.buttonBarLabel = tk.Label(self.buttonBarFrame, text="Button Bar")
+		self.buttonBarLabel.pack()
 		
 		# Add widgets to paned window
 		self.pWindow.add(self.boardFrame, weight=1)
 		self.pWindow.add(self.controlFrame, weight=1)
 
-		self.createRectangles()
-		self.positionSquares()
-
-	# re-position squares based on current value of self.boardSize
-	def positionSquares(self):
-		xpos, ypos, sqIds, lblIds = 0, 0, 0, 0
-		sqSize = self.boardSize/8
-		for row in range(8):
-			for col in range(8):
-				self.canvas.coords(self.squares[sqIds], xpos, ypos, xpos+sqSize, ypos+sqSize)
-				# if dark square, move its label too
-				if ((row+col)%2==1):
-					self.canvas.coords(self.sqLabels[lblIds], (xpos+8, ypos+8))
-					lblIds+=1
-				xpos += sqSize
-				sqIds+=1
-			ypos += sqSize
-			xpos = 0
-
 	# create 64 rectangles to be sized and positioned later
-	def createRectangles(self):
+	def createCanvasObjects(self):
 		flipColor = {
 			self.lightColorSq : self.darkColorSq,
 			self.darkColorSq : self.lightColorSq
@@ -74,19 +66,35 @@ class GUI:
 					darkSqLabelId = self.canvas.create_text(
 						(1, 1),
 						fill="white",
-						text= str(sqLabel)
-						)
+						text= str(sqLabel),
+					)
 					self.sqLabels.append(darkSqLabelId)
 					sqLabel += 1
 				sqColor = flipColor[sqColor]
 			sqColor = flipColor[sqColor]
 
-	''' Event bindings '''
+	# re-position squares and labels based on current value of self.boardSize
+	def positionCanvasObjects(self):
+		xpos, ypos, sqIds, lblIds = 0, 0, 0, 0
+		sqSize = self.boardSize/8
+		for col in range(8):
+			for row in range(8):
+				self.canvas.coords(self.squares[sqIds], xpos, ypos, xpos+sqSize, ypos+sqSize)
+				# if dark square, move its label too
+				if ((row+col)%2==1):
+					self.canvas.coords(self.sqLabels[lblIds], (xpos+8, ypos+8))
+					lblIds+=1
+				xpos += sqSize
+				sqIds+=1
+			ypos += sqSize
+			xpos = 0
+
+		''' Event bindings '''
+
 	# bound to change in board frame container size, redraw board based on width of container
 	def resizeBoard(self, e):
 		self.boardSize = min(e.height, e.width)
-		self.positionSquares()
+		self.positionCanvasObjects()
 		
-
 if __name__ == '__main__':
 	GUI()
