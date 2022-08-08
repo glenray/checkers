@@ -9,7 +9,7 @@ Glen Pritchard 6/25/2019
 - Generates a list of legal moves in a given position, including multiple jumps
 - Updates the board state when one of the legal moves is selected
 - Ends the game when the side to move has no legal moves
-
+Here is the layout of self.position list, where -- are OOB
 --  --  --  --  --
   37  38  39  40
 32  33  34  35  --
@@ -29,9 +29,11 @@ class Board:
 		self.BK 	= 2
 		self.WP 	= 3
 		self.WK 	= 4
+		# 1 = black to move; -1 white to move
 		self.onMove	= None
 		self.legalMoves = []
 		self.isJump = False
+		# 46 element list representing 32 board squares plus out of bounds padding
 		self.position = []
 		self.startFEN = '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]'
 		self.startPos = startPos if startPos != None else self.startFEN
