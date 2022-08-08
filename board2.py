@@ -50,11 +50,12 @@ class Board:
 	def makeMove(self, move):
 		'''
 		Updates self.position to reflect the result of the selected move
+		param move: list squares involved in the move in FEN notation
 		'''
 		# if the move list is empty, the game is over
 		if not move: return
-		# convert FEN move numbers to internal board array indexes
-		move = self.FEN2legalMoves(move)
+		# convert FEN square numbers to self.position array indexes
+		move = [self.FEN2Pos[FENmove-1] for FENmove in move]
 		pos = self.position
 		end = move[-1]
 		start = move[0]
@@ -89,12 +90,6 @@ class Board:
 			self.getLegalMoves()
 			lists = self.legalMoves
 		return [self.pos2FEN[el] if not isinstance(el,list) else self.legalMoves2FEN(el) for el in lists]
-
-	def FEN2legalMoves(self, moves):
-		returnArray = []
-		for move in moves:
-			returnArray.append(self.FEN2Pos[move-1])
-		return returnArray
 
 	def getNormalMove(self, sq):
 		# kings look forward and backward for a move
