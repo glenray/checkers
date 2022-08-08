@@ -9,23 +9,20 @@ Glen Pritchard 6/25/2019
 - Generates a list of legal moves in a given position, including multiple jumps
 - Updates the board state when one of the legal moves is selected
 - Ends the game when the side to move has no legal moves
-"""
-class Board:
-	
-	def __init__(self, startPos=None):
-		self.templ = """
-  --  --  --  --  --
-    37  38  39  40
-  32  33  34  35  --
-    28  29  30  31
-  23  24  25  26  --
-    19  20  21  22
-  14  15  16  17  --
-    10  11  12  13
-  05  06  07  08  --
+
+--  --  --  --  --
+  37  38  39  40
+32  33  34  35  --
+  28  29  30  31
+23  24  25  26  --
+  19  20  21  22
+14  15  16  17  --
+  10  11  12  13
+05  06  07  08  --
 --  --  --  --  --
 """
-
+class Board:
+	def __init__(self, startPos=None):
 		self.OOB 	= -1  # out of bounds value
 		self.EMPTY 	= 0
 		self.BP 	= 1
@@ -35,60 +32,57 @@ class Board:
 		self.onMove	= None
 		self.legalMoves = []
 		self.isJump = False
-		self.position= {}
-		self.startFEN= '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]'
-		self.startPos= startPos if startPos != None else self.startFEN
+		self.position = []
+		self.startFEN = '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]'
+		self.startPos = startPos if startPos != None else self.startFEN
 		# Array to convert FEN square no to self.position index value
 		# idx+1 is FEN sq position; value is index to self.position array
 		self.FEN2Pos = [37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22,14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8]
 		self.pos2FEN = {v:k+1 for k,v in enumerate(self.FEN2Pos)}
-
 		self.initEmptyBoard()
 		self.parseFen()
-		
 
 	def reset(self):
 		self.__init__()
 	
 	def makeMove(self, move):
+		'''
+		Updates self.position to reflect the result of the selected move
+		'''
 		# if the move list is empty, the game is over
 		if not move: return
 		# convert FEN move numbers to internal board array indexes
 		move = self.FEN2legalMoves(move)
-
 		pos = self.position
 		end = move[-1]
 		start = move[0]
-
+		# empty the start square and put piece on end square
 		pos[end] = pos[start]
 		pos[start] = 0
-
-		# jump moves, i.e. any move more than 5
+		# empty jumped pieces. 
 		if abs(move[0] - move[1]) > 5:
 			for i, sq in enumerate(move):
 				if i == 0: continue
-				pos[(move[i]+move[i-1])/2] = 0
-
+				idx = int((move[i]+move[i-1])/2)
+				pos[idx] = 0
 		# king piece on back row
 		if end in (37, 38, 39, 40) and pos[end] == self.WP: pos[end] = self.WK
 		if end in (5, 6, 7, 8) and pos[end] == self.BP: pos[end] = self.BK
-
 		# toggle side to move
 		self.onMove = -self.onMove
-
 
 	def getLegalMoves(self):
 		del self.legalMoves[:]
 		self.isJump = False
 		side = (self.BP,self.BK) if self.onMove == 1 else (self.WP,self.WK)
-		for sq in self.position:
-			if self.position[sq] not in (side): continue
-			self.getJumpMove(sq)
+		for i, sq in enumerate(self.position):
+			if sq not in (side): continue
+			self.getJumpMove(i)
 			if self.isJump == False:
-				self.getNormalMove(sq)
+				self.getNormalMove(i)
 
-	# convert every element in list from internal board array to FEN position
 	def legalMoves2FEN(self, lists = None):
+		# convert every element in list from internal board array to FEN position
 		if lists == None: 
 			self.getLegalMoves()
 			lists = self.legalMoves
@@ -100,7 +94,6 @@ class Board:
 			returnArray.append(self.FEN2Pos[move-1])
 		return returnArray
 
-	
 	def getNormalMove(self, sq):
 		# kings look forward and backward for a move
 		isKing = self.position[sq] in (self.WK, self.BK)
@@ -109,7 +102,6 @@ class Board:
 			for direction in directions:
 				if self.position[sq+(direction*target)] == self.EMPTY:
 					self.legalMoves.append([sq, sq+(direction*target)])
-	
 	
 	def getJumpMove(self, sq, position=None, moves=[]):
 		if position == None: 
@@ -144,13 +136,12 @@ class Board:
 		if newMoves == None and moves:
 			self.legalMoves.append(moves)
 
-	
 	def initEmptyBoard(self):
 		# init empty position
-		offLimits = [0,1,2,3,4,9,18,27,36,41,42,43,44,45]
-		for sq in range(0, 46):
-			self.position[sq] = self.OOB if sq in offLimits else self.EMPTY
-
+		self.position = [self.EMPTY]*46
+		# set out of bounds squares
+		for i in [0,1,2,3,4,9,18,27,36,41,42,43,44,45]:
+			self.position[i] = self.OOB
 
 	def printBoard(self, position=None):
 		position = self.position if position==None else position
@@ -165,14 +156,15 @@ class Board:
 				output += char+"   "
 			print(offset, output)
 			offset = '' if offset == "  " else "  "
+		print('**************')
 
-	# import position from FEN string
-	def parseFen(self, position=None):
-		if position==None:
-			position = self.startPos
+	def parseFen(self, FEN=None):
+		# import position from FEN string
+		if FEN == None:
+			FEN = self.startPos
 
-		position = re.findall(r'"([^"]*)"', position)
-		sides = position[0].split(':')
+		FEN = re.findall(r'"([^"]*)"', FEN)
+		sides = FEN[0].split(':')
 		self.onMove = 1 if sides[0] == 'B' else -1
 		pieces = {
 			"white": (sides[1][1:] if sides[1].startswith('W') else sides[1]).split(','),
@@ -189,8 +181,8 @@ class Board:
 				
 				self.position[self.FEN2Pos[int(sq)-1]] = pColor
 
-	# create FEN string from current position
 	def pos2Fen(self):
+		# create FEN string from current position
 		black = []
 		white = []
 		onMove = "B" if self.onMove == 1 else "W"
@@ -206,23 +198,11 @@ class Board:
 		white = ','.join(white)
 		return f'[FEN "{onMove}:W{white}:B{black}"]'
 
-
 if __name__ == "__main__" :
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
-	a = Board()
-	# print(a.pos2Fen())
-	# exit()
-	print(a.templ)
+	a = Board(pos)
 	a.printBoard()
 	a.getLegalMoves()
-	color = 'Black' if a.onMove == 1 else "White"
-	print(f"{color} on Move")
-	for move in a.legalMoves:
-		print(move)
-	a.makeMove(a.legalMoves[0])
+	moves = a.legalMoves2FEN(a.legalMoves)
+	a.makeMove(moves[0])
 	a.printBoard()
-	a.getLegalMoves()
-	color = 'Black' if a.onMove == 1 else "White"
-	print(f"{color} on Move")
-	for move in a.legalMoves:
-		print(move)
