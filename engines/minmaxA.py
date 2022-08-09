@@ -26,10 +26,6 @@ class player(Engine):
 	
 	def selectMove(self, position=None, moves=None):
 		value, move = self.max_value(self.board, 0, 3)
-		print(value, move)
-		print(self.board.printBoard())
-		print(self.depthcount)
-		breakpoint()
 		if move:
 			return move
 
@@ -48,12 +44,15 @@ class player(Engine):
 		else:
 			# iterate legal moves
 			for move in board.legalMoves2FEN():
-				# breakpoint()
+				# the problem is that this move is not unmade when the 
+				# loop continues
+				tempBoard = copy.deepcopy(board)
 				board.makeMove(move)
 				vtemp = v
 				v = max(v, self.min_value(board, depth+1, maxdepth))
 				if v > vtemp:
 					best_move = move
+				board = tempBoard
 			return v, best_move
 
 
@@ -71,10 +70,13 @@ class player(Engine):
 			return -100
 		else:
 			for move in board.legalMoves2FEN():
-				# breakpoint()
+				# the problem is that this move is not unmade when the loop
+				# continues
+				tempBoard = copy.deepcopy(board)
 				board.makeMove(move)
 				vtemp, placeholder = self.max_value(board, depth+1, maxdepth)
 				v = min(v, vtemp)
+				board = tempBoard
 			return v
 
 	def pieceCount(self, board = None):
@@ -84,7 +86,7 @@ class player(Engine):
 		bp = pos.count(self.board.BP)
 		bk = pos.count(self.board.BK)
 		score = (bp + (bk*2)) - (wp + (wk*2))
-		return score if board.onMove == 1 else -score
+		return -score if board.onMove == 1 else score
 
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
