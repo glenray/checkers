@@ -39,7 +39,6 @@ class player(Engine):
 			return self.pieceCount(board)
 		elif len(board.legalMoves) == 0:
 			# side to move loses
-			print("Max Value: No legal moves.")
 			return -100, None
 		else:
 			# iterate legal moves
@@ -66,7 +65,6 @@ class player(Engine):
 			return self.pieceCount(board)
 		elif len(board.legalMoves) == 0:
 			# opposite color loses
-			print("Min Value: No legal moves.")
 			return -100
 		else:
 			for move in board.legalMoves2FEN():
