@@ -14,6 +14,7 @@ class player(Engine):
 		self._desc = "First attempt at minmax evaluation"
 		self.board = board
 		self.reached_max_depth = False
+		self.depthcount = {}
 
 	@property
 	def name(self):
@@ -25,9 +26,15 @@ class player(Engine):
 	
 	def selectMove(self, position=None, moves=None):
 		value, move = self.max_value(self.board, 0, 3)
-		return move
+		print(value, move)
+		print(self.board.printBoard())
+		print(self.depthcount)
+		breakpoint()
+		if move:
+			return move
 
 	def max_value(self, upper_board, depth, maxdepth):
+		self.depthcount[depth] = self.depthcount.get(depth, 0) + 1
 		v = float("-inf")
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
@@ -36,20 +43,22 @@ class player(Engine):
 			return self.pieceCount(board)
 		elif len(board.legalMoves) == 0:
 			# side to move loses
-			print("Max Value: No legal moves")
+			print("Max Value: No legal moves.")
+			return -100, None
 		else:
 			# iterate legal moves
 			for move in board.legalMoves2FEN():
-				breakpoint()
+				# breakpoint()
 				board.makeMove(move)
 				vtemp = v
 				v = max(v, self.min_value(board, depth+1, maxdepth))
 				if v > vtemp:
 					best_move = move
-		return v, best_move
+			return v, best_move
 
 
 	def min_value(self, upper_board, depth, maxdepth):
+		self.depthcount[depth] = self.depthcount.get(depth, 0) + 1
 		v = float("inf")
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
@@ -59,12 +68,14 @@ class player(Engine):
 		elif len(board.legalMoves) == 0:
 			# opposite color loses
 			print("Min Value: No legal moves.")
+			return -100
 		else:
 			for move in board.legalMoves2FEN():
+				# breakpoint()
 				board.makeMove(move)
-				# vtemp = v
-				v, placeholder = min(v, self.max_value(board, depth+1, maxdepth))
-		return v
+				vtemp, placeholder = self.max_value(board, depth+1, maxdepth)
+				v = min(v, vtemp)
+			return v
 
 	def pieceCount(self, board = None):
 		pos = self.board.position if board == None else board.position
