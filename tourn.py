@@ -42,6 +42,7 @@ class Tourn():
 			moveNo = 1
 			self.b.getLegalMoves()
 			while self.b.legalMoves and isdraw == False:
+				print(self.b.printBoard())
 				# select player on move
 				player = self.bp if self.b.onMove == 1 else self.rp
 				# ask engine to select move

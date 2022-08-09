@@ -1,4 +1,5 @@
 import copy
+import random
 
 from board2 import Board
 from engines.engine import Engine
@@ -46,12 +47,14 @@ class player(Engine):
 				# the problem is that this move is not unmade when the 
 				# loop continues
 				tempBoard = copy.deepcopy(board)
-				board.makeMove(move)
+				tempBoard.makeMove(move)
 				vtemp = v
-				v = max(v, self.min_value(board, depth+1, maxdepth))
+				v = max(v, self.min_value(tempBoard, depth+1, maxdepth))
 				if v > vtemp:
 					best_move = move
-				board = tempBoard
+				# solve the rock back and forth problem
+				if v == vtemp:
+					best_move = random.choice((best_move, move))
 			return v, best_move
 
 
@@ -71,10 +74,9 @@ class player(Engine):
 				# the problem is that this move is not unmade when the loop
 				# continues
 				tempBoard = copy.deepcopy(board)
-				board.makeMove(move)
-				vtemp, placeholder = self.max_value(board, depth+1, maxdepth)
+				tempBoard.makeMove(move)
+				vtemp, placeholder = self.max_value(tempBoard, depth+1, maxdepth)
 				v = min(v, vtemp)
-				board = tempBoard
 			return v
 
 	def pieceCount(self, board = None):
