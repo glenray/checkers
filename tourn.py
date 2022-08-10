@@ -5,61 +5,27 @@ import importlib
 import pkgutil
 import sys
 
-from board2 import Board as board
-from debug import debug
+from board2 import Board
+import engines
 
 class Tourn():
-	def __init__(self, bp=None, rp=None, n=10):
+	def __init__(self, board, bp, rp, n=10):
 		'''
-		param bp: str: Name of an engine to play black
-		param wp: str: Name of an engine to play white
+		param bp: obj: An engine instance to play black
+		param wp: obj: An engine instance to play white
 		param n:  int: Number of games to play in tournament
 		'''
-		self.b = board()
-		self.db = debug()
+		self.b = board
 		self.red = 0		# red win count
 		self.black = 0		# black win count
 		self.draw = 0		# draw count
 		self.mostMoves = 0
 		self.moveNo = 1
-		self.engineNames = self.getEngineNames()
-		self.setTournParams(bp, rp, n)
+		self.bp = bp
+		self.rp = rp
+		self.n = n
 		self.runTournament()
 		self.printResult()
-
-	def setTournParams(self, bp, rp, n):
-		'''
-		Sets the engine for each player and the number of games to play
-		'''
-		if bp in self.engineNames and rp in self.engineNames:
-			self.bp = self.getEngine(bp)
-			self.rp = self.getEngine(rp)
-			self.n = n
-		else:
-			self.getUserInput()
-
-	def getEngine(self, eng_name):
-		im = importlib.import_module
-		return getattr(im(f"engines.{eng_name}"), 'player')(self.b)
-
-	def getUserInput( self ):
-		engines = []
-		print("Engine Choices")
-		for i, engineName in enumerate(self.engineNames):
-			engines.append(self.getEngine(engineName))
-			print( i, engines[i] )
-
-		self.bp = engines[int(input("Engine No for Black: "))]
-		self.rp = engines[int(input("Engine No for Red: "))]
-		self.n = int(input("How many games: "))
-
-	def getEngineNames(self):
-		'''
-		return: list: names of the engines found in the engines folder
-		'''
-		r = [name for _, name, _ in pkgutil.iter_modules(['engines'])]
-		r.remove('engine')
-		return r
 
 	def runTournament( self ):
 		for a in range(1, self.n+1): 
@@ -107,4 +73,8 @@ class Tourn():
 		print(f"Most Moves (when game not a draw): {self.mostMoves}")
 
 if __name__ == "__main__" :
-	Tourn("minmaxA", "moron", 5)
+	b = Board()
+	moron = engines.moron(b)
+	minmax = engines.minmaxA(b, depth=3)
+	snap = engines.snap(b)
+	Tourn(board=b, bp=minmax, rp=moron, n=3)
