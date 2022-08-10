@@ -16,6 +16,7 @@ class Tourn():
 		self.black = 0		# black win count
 		self.draw = 0		# draw count
 		self.mostMoves = 0
+		self.moveNo = 1
 
 		self.getUserInput()
 		self.runTournament()
@@ -39,17 +40,17 @@ class Tourn():
 		for a in range(1, self.n+1): 
 			# Play the game until no legal moves left
 			isdraw = False
-			moveNo = 1
+			self.moveNo = 1
 			self.b.getLegalMoves()
 			while self.b.legalMoves and isdraw == False:
-				print(self.b.printBoard())
+				# print(self.b.printBoard())
 				# select player on move
 				player = self.bp if self.b.onMove == 1 else self.rp
 				# ask engine to select move
 				move = player.selectMove(self.b.pos2Fen(), self.b.legalMoves2FEN())
-				moveNo +=1
+				self.moveNo +=1
 				# declare draw if 1000 moves without victory
-				if moveNo == 1000:
+				if self.moveNo == 1000:
 					isdraw = True
 				# make move selected by engine
 				self.b.makeMove(move)
@@ -60,14 +61,14 @@ class Tourn():
 				message = f"Game {a}: Draw"
 			elif (self.b.onMove==1):
 				self.red +=1
-				message = f'Game {a} won by {self.rp.name} in {moveNo} moves.'
+				message = f'Game {a} won by {self.rp.name} in {self.moveNo} moves.'
 			else:
 				self.black += 1
-				message = f'Game {a} won by {self.bp.name} in {moveNo} moves.'
+				message = f'Game {a} won by {self.bp.name} in {self.moveNo} moves.'
 			print(message)
 			
-			if moveNo > self.mostMoves and isdraw == False:
-				self.mostMoves = moveNo
+			if self.moveNo > self.mostMoves and isdraw == False:
+				self.mostMoves = self.moveNo
 			
 			# start the next game
 			self.b.reset()

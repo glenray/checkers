@@ -31,15 +31,20 @@ class player(Engine):
 			return move
 
 	def max_value(self, upper_board, depth, maxdepth):
+		'''
+		Find minmax's best move at this depth of the search tree
+		'''
 		self.depthcount[depth] = self.depthcount.get(depth, 0) + 1
 		v = float("-inf")
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
 		if depth == maxdepth:
+			# never used with even maxdepth.
+			# print("max_value gets valuation")
 			self.reached_max_depth = True
-			return self.pieceCount(board)
+			return -self.pieceCount(board), None
 		elif len(board.legalMoves) == 0:
-			# side to move loses
+			# minmax loses this branch
 			return -100, None
 		else:
 			# iterate legal moves
@@ -52,13 +57,17 @@ class player(Engine):
 				v = max(v, self.min_value(tempBoard, depth+1, maxdepth))
 				if v > vtemp:
 					best_move = move
-				# solve the rock back and forth problem
-				if v == vtemp:
-					best_move = random.choice((best_move, move))
+				# attempts to solve the rock back and forth problem
+				# but it seems to make minmax much dumber??
+				# if v == vtemp:
+					# best_move = random.choice((best_move, move))
 			return v, best_move
 
 
 	def min_value(self, upper_board, depth, maxdepth):
+		'''
+		Find the opponent's best move at this depth of the search tree
+		'''
 		self.depthcount[depth] = self.depthcount.get(depth, 0) + 1
 		v = float("inf")
 		board = copy.deepcopy(upper_board)
@@ -67,7 +76,7 @@ class player(Engine):
 			self.reached_max_depth = True
 			return self.pieceCount(board)
 		elif len(board.legalMoves) == 0:
-			# opposite color loses
+			# opponent loses in this branch
 			return -100
 		else:
 			for move in board.legalMoves2FEN():
