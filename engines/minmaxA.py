@@ -9,13 +9,14 @@ MinmaxA: First attempt at min max evaluation
 Glen Pritchard -- 8/7/2022
 '''
 class player(Engine):
-	def __init__(self, board):
+	def __init__(self, board, depth = 3):
 		super(player, self).__init__( board )
 		self._name = "MinMaxA"
 		self._desc = "First attempt at minmax evaluation"
 		self.board = board
 		self.reached_max_depth = False
 		self.depthcount = {}
+		self.depth = depth
 
 	@property
 	def name(self):
@@ -26,7 +27,7 @@ class player(Engine):
 		return self._desc
 	
 	def selectMove(self, position=None, moves=None):
-		value, move = self.max_value(self.board, 0, 3)
+		value, move = self.max_value(self.board, 0, self.depth)
 		if move:
 			return move
 
