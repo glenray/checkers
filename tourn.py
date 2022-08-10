@@ -16,9 +16,9 @@ class Tourn():
 		param n:  int: Number of games to play in tournament
 		'''
 		self.b = board
-		self.red = 0		# red win count
-		self.black = 0		# black win count
-		self.draw = 0		# draw count
+		self.redWins = 0		# red win count
+		self.blackWins = 0		# black win count
+		self.draws = 0		# draw count
 		self.mostMoves = 0
 		self.moveNo = 1
 		self.bp = bp
@@ -27,12 +27,15 @@ class Tourn():
 		self.runTournament()
 		self.printResult()
 
-	def runTournament( self ):
-		for a in range(1, self.n+1): 
-			# Play the game until no legal moves left
+	def runTournament(self):
+		'''
+		Play n number of games
+		'''
+		for a in range(self.n): 
 			isdraw = False
 			self.moveNo = 1
 			self.b.getLegalMoves()
+			# Play the game until no legal moves left
 			while self.b.legalMoves and isdraw == False:
 				# print(self.b.printBoard())
 				# select player on move
@@ -46,30 +49,35 @@ class Tourn():
 				# make move selected by engine
 				self.b.makeMove(move)
 
-			# update counters; print game message
-			if isdraw == True:
-				self.draw += 1
-				message = f"Game {a}: Draw"
-			elif (self.b.onMove==1):
-				self.red +=1
-				message = f'Game {a} won by {self.rp.name} in {self.moveNo} moves.'
-			else:
-				self.black += 1
-				message = f'Game {a} won by {self.bp.name} in {self.moveNo} moves.'
-			print(message)
-			
-			if self.moveNo > self.mostMoves and isdraw == False:
-				self.mostMoves = self.moveNo
-			
-			# start the next game
+			self.printGameResult(a+1, isdraw)	
+			# reset the board for the next game
 			self.b.reset()
+
+	def printGameResult(self, gameNo, isdraw):
+		# update counters; print game message
+		winMessage = 'Game {0} won by {1} in {2} moves.'
+		drawMessage = f"Game {gameNo}: Draw"
+		if isdraw == True:
+			self.draws += 1
+			message = drawMessage
+		elif (self.b.onMove==1):
+			self.redWins +=1
+			message = winMessage.format(gameNo, self.rp.name, self.moveNo)
+		else:
+			self.blackWins += 1
+			message = winMessage.format(gameNo, self.bp.name, self.moveNo)
+		print(message)
+		
+		if self.moveNo > self.mostMoves and isdraw == False:
+			self.mostMoves = self.moveNo
+
 
 	def printResult( self ):
 		# print final tournament results
 		print("\nTournament Results")
-		print(f"{self.bp.name} as Black: {self.black}")
-		print(f"{self.rp.name} as Red: {self.red}")
-		print(f"Draws: {self.draw}")
+		print(f"{self.bp.name} as Black: {self.blackWins}")
+		print(f"{self.rp.name} as Red: {self.redWins}")
+		print(f"Draws: {self.draws}")
 		print(f"Most Moves (when game not a draw): {self.mostMoves}")
 
 if __name__ == "__main__" :
