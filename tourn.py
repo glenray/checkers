@@ -25,7 +25,7 @@ class Tourn():
 		self.rp = rp
 		self.n = n
 		self.runTournament()
-		self.printResult()
+		self.printTournamentResult()
 
 	def runTournament(self):
 		'''
@@ -66,13 +66,12 @@ class Tourn():
 		else:
 			self.blackWins += 1
 			message = winMessage.format(gameNo, self.bp.name, self.moveNo)
-		print(message)
-		
+		# track the game with the most moves
 		if self.moveNo > self.mostMoves and isdraw == False:
 			self.mostMoves = self.moveNo
+		print(message)
 
-
-	def printResult( self ):
+	def printTournamentResult(self):
 		# print final tournament results
 		print("\nTournament Results")
 		print(f"{self.bp.name} as Black: {self.blackWins}")
