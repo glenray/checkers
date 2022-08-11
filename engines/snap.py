@@ -14,7 +14,7 @@ class player( Engine ):
 	def selectMove(self, position, moves):
 		moveLen = len(moves)
 		if moveLen > 0:
-			return moves[0]
+			return moves[0], None
 
 	@property
 	def name(self):

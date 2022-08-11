@@ -36,18 +36,23 @@ class Tourn():
 			self.moveNo = 1
 			self.b.getLegalMoves()
 			# Play the game until no legal moves left
-			while self.b.legalMoves and isdraw == False:
+			while len(self.b.legalMoves) and isdraw == False:
 				# print(self.b.printBoard())
 				# select player on move
 				player = self.bp if self.b.onMove == 1 else self.rp
 				# ask engine to select move
-				move = player.selectMove(self.b.pos2Fen(), self.b.legalMoves2FEN())
+				move, ev = player.selectMove(self.b.pos2Fen(), self.b.legalMoves2FEN())
 				self.moveNo +=1
 				# declare draw if 1000 moves without victory
 				if self.moveNo == 1000:
 					isdraw = True
 				# make move selected by engine
 				self.b.makeMove(move)
+				# self.b.printBoard()
+				# print(player.name, ev)
+				# print()
+
+				self.b.getLegalMoves()
 
 			self.printGameResult(a+1, isdraw)	
 			# reset the board for the next game
@@ -82,6 +87,9 @@ class Tourn():
 if __name__ == "__main__" :
 	b = Board()
 	moron = engines.moron(b)
-	minmax = engines.minmaxA(b, depth=3)
+	minmax5 = engines.minmaxA(b, depth=4)
+	minmax5.name = "MinMax5"
+	minmax3 = engines.minmaxA(b, depth=3)
+	minmax3.name = "MinMax3"
 	snap = engines.snap(b)
-	Tourn(board=b, bp=minmax, rp=moron, n=3)
+	Tourn(board=b, bp=minmax3, rp=moron, n=20)

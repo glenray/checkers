@@ -15,12 +15,15 @@ class player(Engine):
 		self._desc = "First attempt at minmax evaluation"
 		self.board = board
 		self.reached_max_depth = False
-		self.depthcount = {}
 		self.depth = depth
 
 	@property
 	def name(self):
 		return self._name
+
+	@name.setter
+	def name(self, newname):
+		self._name = newname
 
 	@property
 	def desc(self):
@@ -28,14 +31,12 @@ class player(Engine):
 	
 	def selectMove(self, position=None, moves=None):
 		value, move = self.max_value(self.board, 0, self.depth)
-		if move:
-			return move
+		return move, value
 
 	def max_value(self, upper_board, depth, maxdepth):
 		'''
 		Find minmax's best move at this depth of the search tree
 		'''
-		self.depthcount[depth] = self.depthcount.get(depth, 0) + 1
 		v = float("-inf")
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
@@ -43,7 +44,7 @@ class player(Engine):
 			# never used with even maxdepth.
 			# print("max_value gets valuation")
 			self.reached_max_depth = True
-			return -self.pieceCount(board), None
+			return self.pieceCount(board), None
 		elif len(board.legalMoves) == 0:
 			# minmax loses this branch
 			return -100, None
@@ -69,7 +70,6 @@ class player(Engine):
 		'''
 		Find the opponent's best move at this depth of the search tree
 		'''
-		self.depthcount[depth] = self.depthcount.get(depth, 0) + 1
 		v = float("inf")
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
@@ -90,13 +90,18 @@ class player(Engine):
 			return v
 
 	def pieceCount(self, board = None):
+		# breakpoint()
 		pos = self.board.position if board == None else board.position
 		wp = pos.count(self.board.WP)
 		wk = pos.count(self.board.WK)
 		bp = pos.count(self.board.BP)
 		bk = pos.count(self.board.BK)
-		score = (bp + (bk*2)) - (wp + (wk*2))
-		return -score if board.onMove == 1 else score
+		# we should evaluate the position from the perspective of the side to move
+		if self.board.onMove == 1:
+			return (bp + (bk*2)) - (wp + (wk*2))
+		else:
+			return (wp + (wk*2)) - (bp + (bk*2))
+
 
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
