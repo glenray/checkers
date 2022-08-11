@@ -180,14 +180,13 @@ class Board:
 
 	def pos2Fen(self):
 		# create FEN string from current position
-		black = []
-		white = []
+		black, white = [], []
 		onMove = "B" if self.onMove == 1 else "W"
-		for sq in self.position:
-			if self.position[sq] > 0:
-				sqNo = str(self.FEN2Pos.index(sq)+1)
-				king = "K" if self.position[sq] in (self.BK, self.WK) else ""
-				if self.position[sq] > 2:
+		for i, sq in enumerate(self.position):
+			if self.position[i] > 0:
+				sqNo = str(self.pos2FEN[i])
+				king = "K" if self.position[i] in (self.BK, self.WK) else ""
+				if self.position[i] > 2:
 					white.append(f"{king}{sqNo}")
 				else:
 					black.append(f"{king}{sqNo}")

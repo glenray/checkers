@@ -19,7 +19,7 @@ class player(Engine):
 
 	@property
 	def name(self):
-		return self._name
+		return f"{self._name}@d{self.depth}"
 
 	@name.setter
 	def name(self, newname):

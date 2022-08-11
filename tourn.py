@@ -9,11 +9,13 @@ from board2 import Board
 import engines
 
 class Tourn():
-	def __init__(self, board, bp, rp, n=10):
+	def __init__(self, board, bp, rp, n=10, logFile=None):
 		'''
+		param board: obj: A Board instance to keep track of the game
 		param bp: obj: An engine instance to play black
 		param wp: obj: An engine instance to play white
 		param n:  int: Number of games to play in tournament
+		param logFile: str: Name of log file
 		'''
 		self.b = board
 		self.redWins = 0		# red win count
@@ -24,6 +26,7 @@ class Tourn():
 		self.bp = bp
 		self.rp = rp
 		self.n = n
+		self.logFile = logFile
 		self.runTournament()
 		self.printTournamentResult()
 
@@ -37,26 +40,30 @@ class Tourn():
 			self.b.getLegalMoves()
 			# Play the game until no legal moves left
 			while len(self.b.legalMoves) and isdraw == False:
-				# print(self.b.printBoard())
 				# select player on move
 				player = self.bp if self.b.onMove == 1 else self.rp
 				# ask engine to select move
 				move, ev = player.selectMove(self.b.pos2Fen(), self.b.legalMoves2FEN())
+				if self.logFile:
+					self.logger(player, ev, move)
 				self.moveNo +=1
 				# declare draw if 1000 moves without victory
 				if self.moveNo == 1000:
 					isdraw = True
 				# make move selected by engine
 				self.b.makeMove(move)
-				# self.b.printBoard()
-				# print(player.name, ev)
-				# print()
-
 				self.b.getLegalMoves()
 
 			self.printGameResult(a+1, isdraw)	
 			# reset the board for the next game
 			self.b.reset()
+
+	def logger(self, player, ev, move):
+		'''
+		Print each move and score to a log file
+		'''
+		print(player.name, move, ev, self.b.pos2Fen())
+		self.b.printBoard()
 
 	def printGameResult(self, gameNo, isdraw):
 		# update counters; print game message
@@ -87,9 +94,6 @@ class Tourn():
 if __name__ == "__main__" :
 	b = Board()
 	moron = engines.moron(b)
-	minmax5 = engines.minmaxA(b, depth=4)
-	minmax5.name = "MinMax5"
-	minmax3 = engines.minmaxA(b, depth=3)
-	minmax3.name = "MinMax3"
+	minmax = engines.minmaxA(b, depth=3)
 	snap = engines.snap(b)
-	Tourn(board=b, bp=minmax3, rp=moron, n=20)
+	Tourn(board=b, bp=moron, rp=minmax, n=1, logFile="log.txt")
