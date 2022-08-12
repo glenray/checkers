@@ -1,8 +1,7 @@
 '''
 Run tournament between 2 engines
 '''
-import importlib
-import pkgutil
+import os
 import sys
 
 from board2 import Board
@@ -34,6 +33,8 @@ class Tourn():
 		'''
 		Play n number of games
 		'''
+		if self.logFile and os.path.exists(self.logFile):
+			os.remove(self.logFile)
 		for a in range(self.n): 
 			isdraw = False
 			self.moveNo = 1
@@ -62,8 +63,9 @@ class Tourn():
 		'''
 		Print each move and score to a log file
 		'''
-		print(player.name, move, ev, self.b.pos2Fen())
-		self.b.printBoard()
+		with open(self.logFile, 'a') as f:
+			f.write(f"{player.name}, {move}, {ev}, {self.b.pos2Fen()}\n")
+			f.write(self.b.printBoard()+"\n")
 
 	def printGameResult(self, gameNo, isdraw):
 		# update counters; print game message
@@ -94,6 +96,7 @@ class Tourn():
 if __name__ == "__main__" :
 	b = Board()
 	moron = engines.moron(b)
-	minmax = engines.minmaxA(b, depth=3)
+	minmax3 = engines.minmaxA(b, maxdepth=3)
+	minmax5 = engines.minmaxA(b, maxdepth=5)
 	snap = engines.snap(b)
-	Tourn(board=b, bp=moron, rp=minmax, n=1, logFile="log.txt")
+	Tourn(board=b, bp=minmax3, rp=moron, n=20)

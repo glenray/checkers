@@ -143,17 +143,19 @@ class Board:
 	def printBoard(self, position=None):
 		position = self.position if position==None else position
 		offset = "  "
+		output = ''
 		for start in [37, 32, 28, 23, 19, 14, 10, 5]:
-			output = ''
+			output += offset
 			for row in range(0,4):
 				sq = position[start+row]
 				char = 'b' if sq in (1,2) else 'w'
 				char = char.upper() if sq %2 == 0 else char
 				if sq == 0: char='-'
-				output += char+"   "
-			print(offset, output)
+				output = output+char+"   "
+			output += "\n"
 			offset = '' if offset == "  " else "  "
-		print('**************')
+		output = output+'**************'
+		return output+"\n"
 
 	def parseFen(self, FEN=None):
 		# import position from FEN string

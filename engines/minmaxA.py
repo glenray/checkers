@@ -9,17 +9,17 @@ MinmaxA: First attempt at min max evaluation
 Glen Pritchard -- 8/7/2022
 '''
 class player(Engine):
-	def __init__(self, board, depth = 3):
+	def __init__(self, board, maxdepth = 3):
 		super(player, self).__init__( board )
 		self._name = "MinMaxA"
 		self._desc = "First attempt at minmax evaluation"
 		self.board = board
 		self.reached_max_depth = False
-		self.depth = depth
+		self.maxdepth = maxdepth
 
 	@property
 	def name(self):
-		return f"{self._name}@d{self.depth}"
+		return f"{self._name}@d{self.maxdepth}"
 
 	@name.setter
 	def name(self, newname):
@@ -30,7 +30,7 @@ class player(Engine):
 		return self._desc
 	
 	def selectMove(self, position=None, moves=None):
-		value, move = self.max_value(self.board, 0, self.depth)
+		value, move = self.max_value(self.board, 0, self.maxdepth)
 		return move, value
 
 	def max_value(self, upper_board, depth, maxdepth):
@@ -41,8 +41,6 @@ class player(Engine):
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
 		if depth == maxdepth:
-			# never used with even maxdepth.
-			# print("max_value gets valuation")
 			self.reached_max_depth = True
 			return self.pieceCount(board), None
 		elif len(board.legalMoves) == 0:
@@ -51,18 +49,18 @@ class player(Engine):
 		else:
 			# iterate legal moves
 			for move in board.legalMoves2FEN():
-				# the problem is that this move is not unmade when the 
-				# loop continues
 				tempBoard = copy.deepcopy(board)
 				tempBoard.makeMove(move)
 				vtemp = v
 				v = max(v, self.min_value(tempBoard, depth+1, maxdepth))
 				if v > vtemp:
 					best_move = move
+				
 				# attempts to solve the rock back and forth problem
 				# but it seems to make minmax much dumber??
-				# if v == vtemp:
-					# best_move = random.choice((best_move, move))
+				# if depth == 0 and v == vtemp:
+				# 	best_move = random.choice((best_move, move))
+			
 			return v, best_move
 
 
