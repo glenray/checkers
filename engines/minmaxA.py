@@ -14,7 +14,6 @@ class player(Engine):
 		self._name = "MinMaxA"
 		self._desc = "First attempt at minmax evaluation"
 		self.board = board
-		self.reached_max_depth = False
 		self.maxdepth = maxdepth
 
 	@property
@@ -30,10 +29,12 @@ class player(Engine):
 		return self._desc
 	
 	def selectMove(self, position=None, moves=None):
-		value, move = self.max_value(self.board, 0, self.maxdepth)
+		root = moveNode(self.board)
+		value, move = self.max_value(self.board, 0, self.maxdepth, root)
+		breakpoint()
 		return move, value
 
-	def max_value(self, upper_board, depth, maxdepth):
+	def max_value(self, upper_board, depth, maxdepth, parentNode=None):
 		'''
 		Find minmax's best move at this depth of the search tree
 		'''
@@ -41,7 +42,6 @@ class player(Engine):
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
 		if depth == maxdepth:
-			self.reached_max_depth = True
 			return self.pieceCount(board), None
 		elif len(board.legalMoves) == 0:
 			# minmax loses this branch
@@ -51,11 +51,15 @@ class player(Engine):
 			for move in board.legalMoves2FEN():
 				tempBoard = copy.deepcopy(board)
 				tempBoard.makeMove(move)
+				node = moveNode(tempBoard)
+				parentNode.addChild(node)
 				vtemp = v
-				v = max(v, self.min_value(tempBoard, depth+1, maxdepth))
+				v = max(v, self.min_value(tempBoard, depth+1, maxdepth, node))
 				if v > vtemp:
 					best_move = move
-				
+				node.v = self.pieceCount(tempBoard)
+				node.move = move
+
 				# attempts to solve the rock back and forth problem
 				# but it seems to make minmax much dumber??
 				# if depth == 0 and v == vtemp:
@@ -63,8 +67,7 @@ class player(Engine):
 			
 			return v, best_move
 
-
-	def min_value(self, upper_board, depth, maxdepth):
+	def min_value(self, upper_board, depth, maxdepth, parentNode):
 		'''
 		Find the opponent's best move at this depth of the search tree
 		'''
@@ -72,7 +75,6 @@ class player(Engine):
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
 		if depth == maxdepth:
-			self.reached_max_depth = True
 			return self.pieceCount(board)
 		elif len(board.legalMoves) == 0:
 			# opponent loses in this branch
@@ -83,8 +85,12 @@ class player(Engine):
 				# continues
 				tempBoard = copy.deepcopy(board)
 				tempBoard.makeMove(move)
-				vtemp, placeholder = self.max_value(tempBoard, depth+1, maxdepth)
+				node = moveNode(tempBoard)
+				parentNode.addChild(node)
+				vtemp, placeholder = self.max_value(tempBoard, depth+1, maxdepth, node)
 				v = min(v, vtemp)
+				node.move = move
+				node.v = self.pieceCount(tempBoard)
 			return v
 
 	def pieceCount(self, board = None):
@@ -95,14 +101,23 @@ class player(Engine):
 		bp = pos.count(self.board.BP)
 		bk = pos.count(self.board.BK)
 		# we should evaluate the position from the perspective of the side to move
-		if self.board.onMove == 1:
-			return (bp + (bk*2)) - (wp + (wk*2))
-		else:
-			return (wp + (wk*2)) - (bp + (bk*2))
+		blackScore = (bp + (bk*2)) - (wp + (wk*2))
+		return blackScore if self.board.onMove == 1 else -blackScore 
 
+class moveNode:
+	def __init__(self, board, parent = None):
+		self.board = board
+		self.parent = parent
+		self.children = []
+
+	def addChild(self, child):
+		self.children.append(child)
+		child.parent = self
+
+	def __repr__(self):
+		return self.board.printBoard()
 
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
-	p = player(Board(pos))
-	p.board.printBoard()
-	print(p.pieceCount())
+	p = player(Board(pos), maxdepth=5)
+	p.selectMove()

@@ -14,15 +14,11 @@ def debug(pos, board, engine):
 	print(board.printBoard())
 
 	make_move(board, engine)
-	make_move(board, engine)
-	make_move(board, engine)
-	make_move(board, engine)
-	make_move(board, engine)
 
 
 pos = '[FEN "B:W17,21,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,10,11,12,14"]'
 b = Board(pos)
-debug(pos, b, engines.minmaxA(b, depth=5))
+debug(pos, b, engines.minmaxA(b, maxdepth=3))
 
 
 '''
