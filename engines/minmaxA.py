@@ -29,9 +29,10 @@ class player(Engine):
 		return self._desc
 	
 	def selectMove(self, position=None, moves=None):
-		root = moveNode(self.board)
-		value, move = self.max_value(self.board, 0, self.maxdepth, root)
-		breakpoint()
+		# root = moveNode(self.board)
+		# value, move = self.max_value(self.board, 0, self.maxdepth, root)
+		value, move = self.max_value(self.board, 0, self.maxdepth)
+		# breakpoint()
 		return move, value
 
 	def max_value(self, upper_board, depth, maxdepth, parentNode=None):
@@ -52,13 +53,17 @@ class player(Engine):
 				tempBoard = copy.deepcopy(board)
 				tempBoard.makeMove(move)
 				vtemp = v
-				node = moveNode(tempBoard)
-				parentNode.addChild(node)
+				if parentNode:
+					node = moveNode(tempBoard)
+					parentNode.addChild(node)
+				else:
+					node = None
 				v = max(v, self.min_value(tempBoard, depth+1, maxdepth, node))
 				if v > vtemp:
 					best_move = move
-				node.v = self.pieceCount(tempBoard)
-				node.move = move
+				if parentNode:
+					node.v = self.pieceCount(tempBoard)
+					node.move = move
 
 				# attempts to solve the rock back and forth problem
 				# but it seems to make minmax much dumber??
@@ -67,7 +72,7 @@ class player(Engine):
 			
 			return v, best_move
 
-	def min_value(self, upper_board, depth, maxdepth, parentNode):
+	def min_value(self, upper_board, depth, maxdepth, parentNode=None):
 		'''
 		Find the opponent's best move at this depth of the search tree
 		'''
@@ -85,12 +90,16 @@ class player(Engine):
 				# continues
 				tempBoard = copy.deepcopy(board)
 				tempBoard.makeMove(move)
-				node = moveNode(tempBoard)
-				parentNode.addChild(node)
+				if parentNode:
+					node = moveNode(tempBoard)
+					parentNode.addChild(node)
+				else:
+					node = None
 				vtemp, placeholder = self.max_value(tempBoard, depth+1, maxdepth, node)
 				v = min(v, vtemp)
-				node.move = move
-				node.v = self.pieceCount(tempBoard)
+				if parentNode:
+					node.move = move
+					node.v = self.pieceCount(tempBoard)
 			return v
 
 	def pieceCount(self, board = None):
