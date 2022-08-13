@@ -145,6 +145,20 @@ class moveNode:
 			n+=child._countChildren()
 		return n
 
+	def getLeafNodes(self):
+		'''
+		@return: list: list of nodes from bottom of tree, i.e.,
+			those no children
+		'''
+		result = []
+		for child in self.children:
+			if child.children:
+				result += child.getLeafNodes()
+			else:
+				result.append(child)
+		return result
+
+
 	def __repr__(self):
 		return self.board.printBoard()
 
