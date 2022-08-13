@@ -51,9 +51,9 @@ class player(Engine):
 			for move in board.legalMoves2FEN():
 				tempBoard = copy.deepcopy(board)
 				tempBoard.makeMove(move)
+				vtemp = v
 				node = moveNode(tempBoard)
 				parentNode.addChild(node)
-				vtemp = v
 				v = max(v, self.min_value(tempBoard, depth+1, maxdepth, node))
 				if v > vtemp:
 					best_move = move
@@ -114,10 +114,41 @@ class moveNode:
 		self.children.append(child)
 		child.parent = self
 
+	def printChildren(self):
+		for i, child in enumerate(self.children):
+			print(i)
+			print(child.__repr__())
+
+	def getRootNode(self):
+		''' Returns tree root node '''
+		if self.parent == None:
+			return self
+		x = self.parent
+		while True:
+			if x.parent == None:
+				return x
+			else:
+				x = x.parent
+
+	def countNodes(self):
+		''' Return count of this nodes children and all decendents '''
+		return self._countChildren() + len(self.children)
+
+	def _countChildren(self):
+		''' 
+		Return the count of all child nodes under the current node
+		This does not include the child nodes within the current node
+		'''
+		n = 0
+		for child in self.children:
+			n+=len(child.children)
+			n+=child._countChildren()
+		return n
+
 	def __repr__(self):
 		return self.board.printBoard()
 
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
-	p = player(Board(pos), maxdepth=5)
+	p = player(Board(), maxdepth=5)
 	p.selectMove()
