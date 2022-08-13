@@ -11,10 +11,10 @@ import tkinter.ttk as ttk
 import time
 
 # Let's use board2 instead of board
-import board
-# import board2 as board
-from engines.moron import player as moron
-from engines.snap import player as snap
+# import board
+import board2 as board
+from engines import moron
+from engines import snap
 
 '''
 GUI for checkers
@@ -23,8 +23,8 @@ Glen Pritchard 6/17/2018
 class GUI:
 	def __init__(self, board):
 		self.board = board
-		self.bPlayer = moron
-		self.wPlayer = moron
+		self.bPlayer = moron(self.board)
+		self.wPlayer = moron(self.board)
 		self.lightSqColor = "yellow"
 		self.darkSqColor = "blue"
 		self.litSqColor = "gray75"
@@ -161,7 +161,8 @@ class GUI:
 			if player == 'human':
 				return
 			# ask that player for a move
-			move = player.selectMove()
+			breakpoint()
+			move, _ = player.selectMove()
 			# if the player made a legal move
 			if move in self.board.legalMoves:
 				self.board.makeMove(move)	# update the board
@@ -378,7 +379,8 @@ if __name__ == "__main__" :
 		"royalTour"		: '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	}
 	"""
-	{27-24 Beginning a spectacular shot in which White pitches (almost) all his men
+royalTour:
+{27-24 Beginning a spectacular shot in which White pitches (almost) all his men
 } 1. 19-15 10x19 2. 5-1 3x10 3. 11-8 4x11 4. 27-24 20x27 5. 18-14 9x18 6. 1-5
 2x9 {2-9 and now the coup de grace that inspired the name of this problem...}
 7. 5x32 {5-32 (Several different jumping sequences are possible, for example 5

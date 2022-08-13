@@ -141,10 +141,17 @@ class Board:
 			self.position[i] = self.OOB
 
 	def printBoard(self, position=None):
+		'''
+		Returns a string of the position in human readable form
+
+		param: list: The Board.position, the internal representation of a board position
+		return: str: Human readable representation of the position.
+		'''
 		position = self.position if position==None else position
-		offset = "  "
-		output = ''
+		offset, output, sqNum = "  ", '\n', 1
 		for start in [37, 32, 28, 23, 19, 14, 10, 5]:
+			output+= "{:>2}| ".format(sqNum)
+			sqNum +=3
 			output += offset
 			for row in range(0,4):
 				sq = position[start+row]
@@ -153,9 +160,9 @@ class Board:
 				if sq == 0: char='-'
 				output = output+char+"   "
 			output += "\n"
+			sqNum += 1
 			offset = '' if offset == "  " else "  "
-		output = output+'**************'
-		return output+"\n"
+		return output
 
 	def parseFen(self, FEN=None):
 		# import position from FEN string
@@ -199,8 +206,4 @@ class Board:
 if __name__ == "__main__" :
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
 	a = Board(pos)
-	a.printBoard()
-	a.getLegalMoves()
-	moves = a.legalMoves2FEN(a.legalMoves)
-	a.makeMove(moves[0])
-	a.printBoard()
+	print(a.printBoard())
