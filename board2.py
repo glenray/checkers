@@ -149,10 +149,10 @@ class Board:
 		return: str: Human readable representation of the board position.
 		'''
 		position = self.position if position==None else position
-		border = "   -----------------"
+		border = "    -----------------"
 		offset, output, sqNum = "  ", f'\n{border}\n', 1
 		for start in [37, 32, 28, 23, 19, 14, 10, 5]:
-			output+= "{:>2}| ".format(sqNum)
+			output+= "{:>2} | ".format(sqNum)
 			sqNum +=3
 			rowtxt = offset
 			for row in range(0,4):
