@@ -146,24 +146,26 @@ class Board:
 		Returns a string of the position in human readable form
 
 		param: list: The Board.position, the internal representation of a board position
-		return: str: Human readable representation of the position.
+		return: str: Human readable representation of the board position.
 		'''
 		position = self.position if position==None else position
-		offset, output, sqNum = "  ", '\n', 1
+		border = "   -----------------"
+		offset, output, sqNum = "  ", f'\n{border}\n', 1
 		for start in [37, 32, 28, 23, 19, 14, 10, 5]:
 			output+= "{:>2}| ".format(sqNum)
 			sqNum +=3
-			output += offset
+			rowtxt = offset
 			for row in range(0,4):
 				sq = position[start+row]
 				char = 'b' if sq in (1,2) else 'w'
 				char = char.upper() if sq %2 == 0 else char
 				if sq == 0: char='-'
-				output = output+char+"   "
-			output += "\n"
+				rowtxt += char+"   "
+			rowtxt = rowtxt.rstrip().ljust(16)
+			output += rowtxt+"| {0}\n".format(sqNum)
 			sqNum += 1
 			offset = '' if offset == "  " else "  "
-		return output
+		return output+border
 
 	def parseFen(self, FEN=None):
 		# import position from FEN string
