@@ -57,8 +57,8 @@ class Play:
 
 		askHuman4Move()
 		while True:
-			inp_range = f"0 to {len(legalMoves)-1}" if len(legalMoves) > 1 else '0' 
-			hMove = input(f"What is your move, Human? ({inp_range} to select move or 'h' for help): ")
+			inp_range = f"0-{len(legalMoves)-1}" if len(legalMoves) > 1 else '0' 
+			hMove = input(f"What is your move, Human? \n({inp_range} to move or 'h' for other commands): ")
 			if hMove == 'q'.lower():
 				print("Quitting")
 				quit()
@@ -80,7 +80,7 @@ class Play:
 			if x >= 0 and x<len(legalMoves):
 				return legalMoves[x]
 			else:
-				print("Your input is out of bounds. Try again.")
+				print(f"Your input must be {inp_range}. Try again.")
 				continue
 
 	def displayGameIntro(self):
@@ -90,8 +90,8 @@ class Play:
 def main():
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
 	b = Board()
-	rp = "human"
-	bp = engines.minmaxA(b, maxdepth=3)
+	bp = "human"
+	rp = engines.minmaxA(b, maxdepth=3)
 	Play(b, bp, rp)
 
 if __name__ == '__main__':

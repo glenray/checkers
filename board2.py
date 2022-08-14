@@ -150,7 +150,7 @@ class Board:
 		'''
 		position = self.position if position==None else position
 		border = "    -----------------"
-		offset, output, sqNum = "  ", f'\n{border}\n', 1
+		offset, output, sqNum = "  ", f'\n{self.pos2Fen()}\n{border}\n', 1
 		for start in [37, 32, 28, 23, 19, 14, 10, 5]:
 			output+= "{:>2} | ".format(sqNum)
 			sqNum +=3
