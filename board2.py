@@ -53,6 +53,7 @@ class Board:
 		param move: list squares involved in the move in FEN notation
 		'''
 		# if the move list is empty, the game is over
+		# or if the user input nonsense that returns None, don't do anything
 		if not move: return
 		# convert FEN square numbers to self.position array indexes
 		move = [self.FEN2Pos[FENmove-1] for FENmove in move]

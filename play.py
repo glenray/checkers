@@ -32,11 +32,32 @@ class Play:
 		print(f"{sidetomove} has no moves left. {winner} wins!")
 
 	def getHumanMove(self, legalMoves):
+		'''
+		Return a move from the human user.
+		@param legalMoves: list a list of legal moves in FEN notation
+		@return list: one element from legalMoves
+		Note: Invalid input returns None to self.board.makeMove method. 
+		When makeMove receives that value, it will immediately return 
+		to self.run without making any modification to the current board. 
+		So, the user will be asked for input again until the input is valid.
+		'''
 		print("Here are the legal moves:")
 		for i, move in enumerate(legalMoves):
 			print(f"{i}. {move}")
-		hMove = int(input("What is your move, Human? "))
-		return legalMoves[hMove]
+		hMove = input("What is your move, Human? ")
+		if hMove == 'q'.lower():
+			print("Quitting")
+			quit()
+		try:
+			x = int(hMove)
+		except:
+			print("Your input is not an integer. Try again.")
+			return None
+		if x >= 0 and x<len(legalMoves):
+			return legalMoves[x]
+		else:
+			print("Your input is out of bounds. Try again.")
+			return None
 
 	def displayGameIntro(self):
 		print(f"Black: {self.bp} vs. White: {self.rp}")
@@ -44,9 +65,9 @@ class Play:
 
 def main():
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
-	b = Board(pos)
-	bp = "human"
-	rp = engines.minmaxA(b)
+	b = Board()
+	rp = "human"
+	bp = engines.minmaxA(b, maxdepth=5)
 	Play(b, bp, rp)
 
 if __name__ == '__main__':
