@@ -1,5 +1,6 @@
 from board2 import Board
 import engines
+from positions import positions as pos
 
 class Play:
 	'''
@@ -36,7 +37,9 @@ class Play:
 				move = self.getHumanMove(legalMoves)
 			else:
 				print(f"{player.name} is thinking...")
+				print(f"Possible moves are: {self.board.legalMoves2FEN()}")
 				move, value = player.selectMove(legalMoves)
+				print(f"{player.name} plays {move} ({value})")
 			self.board.makeMove(move)
 			print(self.board.printBoard())
 
@@ -88,10 +91,9 @@ class Play:
 
 
 def main():
-	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
-	b = Board()
-	bp = "human"
-	rp = engines.minmaxA(b, maxdepth=3)
+	b = Board(pos['royalTour'])
+	rp = "human"
+	bp = engines.minmaxA(b, maxdepth=8)
 	Play(b, bp, rp)
 
 if __name__ == '__main__':

@@ -1,6 +1,8 @@
 import re
 import copy
 
+from positions import positions as pos
+
 """
 Board2
 Glen Pritchard 6/25/2019
@@ -171,7 +173,8 @@ class Board:
 		# import position from FEN string
 		if FEN == None:
 			FEN = self.startPos
-
+		# FEN[0] will be a string of what is inside double quotes of the 
+		# original FEN string passed to the function
 		FEN = re.findall(r'"([^"]*)"', FEN)
 		sides = FEN[0].split(':')
 		self.onMove = 1 if sides[0] == 'B' else -1
@@ -207,6 +210,5 @@ class Board:
 		return f'[FEN "{onMove}:W{white}:B{black}"]'
 
 if __name__ == "__main__" :
-	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
-	a = Board(pos)
+	a = Board(pos['royalTour'])
 	print(a.printBoard())

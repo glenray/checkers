@@ -46,6 +46,7 @@ class player(Engine):
 			return self.pieceCount(board), None
 		elif len(board.legalMoves) == 0:
 			# minmax loses this branch
+			# breakpoint()
 			return -100, None
 		else:
 			# iterate legal moves
@@ -83,7 +84,8 @@ class player(Engine):
 			return self.pieceCount(board)
 		elif len(board.legalMoves) == 0:
 			# opponent loses in this branch
-			return -100
+			# breakpoint()
+			return 100
 		else:
 			for move in board.legalMoves2FEN():
 				# the problem is that this move is not unmade when the loop
