@@ -11,6 +11,9 @@ Glen Pritchard -- 6/5/2019
 
 A good tutorial about bitboards for checkers:
 https://www.3dkingdoms.com/checkers/bitboards.htm
+
+Note: This was written for board.Board.position 8x8 nexted lists 
+This is not yet compatible with the board2.Board.position 46 element list
 '''
 class player(Engine):
 	def __init__(self, board):
@@ -114,7 +117,7 @@ class player(Engine):
 
 		return SimpleNamespace(**d)
 
-	# create bit board representation from board.position 8x8 array
+	# create bit board representation from board.Board.position 8x8 array
 	def convert2BB( self, position ):
 		position = re.findall(r'"([^"]*)"', position)
 		sides = position[0].split(':')

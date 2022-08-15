@@ -11,10 +11,14 @@ class player( Engine ):
 		self._name = "Snap"
 		self._desc = "Picks the first move on the list"
 
-	def selectMove(self, position, moves):
+	def selectMove(self, position=None, moves=None):
+		if position == None:
+			position = self.board.pos2Fen()
+		if moves == None:
+			moves = self.board.legalMoves2FEN()
 		moveLen = len(moves)
 		if moveLen > 0:
-			return moves[0], None
+			return moves[0]
 
 	@property
 	def name(self):

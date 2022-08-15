@@ -4,9 +4,9 @@ import engines
 sides = {1 : "Black", -1 : "White"}
 
 def make_move(board, engine):
-	move, score = engine.selectMove()
+	move = engine.selectMove()
 	board.makeMove(move)
-	print(f"{engine.name} - {sides[-board.onMove]}'s Move: {move}; Score: {score}")
+	print(f"{engine.name} - {sides[-board.onMove]}'s Move: {move}; Score: {engine.score}")
 	print(board.printBoard())
 
 def debug(pos, board, engine):
@@ -16,9 +16,12 @@ def debug(pos, board, engine):
 	make_move(board, engine)
 
 
-pos = '[FEN "B:W17,21,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,10,11,12,14"]'
+pos = '[FEN "W:W31,32,25,27,28,21,22,23,K1:B15,16,9,5,7,4"]'
 b = Board(pos)
-debug(pos, b, engines.minmaxA(b, maxdepth=3))
+# debug(pos, b, engines.minmaxA(b, maxdepth=3))
+# debug(pos, b, engines.minmaxB(b, maxdepth=3))
+# debug(pos, b, engines.snap(b))
+debug(pos, b, engines.moron(b))
 
 
 '''

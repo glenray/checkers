@@ -44,7 +44,7 @@ class Tourn():
 				# select player on move
 				player = self.bp if self.b.onMove == 1 else self.rp
 				# ask engine to select move
-				move, ev = player.selectMove(self.b.pos2Fen(), self.b.legalMoves2FEN())
+				move = player.selectMove(self.b.pos2Fen(), self.b.legalMoves2FEN())
 				if self.logFile:
 					self.logger(player, ev, move)
 				self.moveNo +=1
@@ -97,6 +97,6 @@ if __name__ == "__main__" :
 	b = Board()
 	moron = engines.moron(b)
 	minmax3 = engines.minmaxA(b, maxdepth=3)
-	minmax5 = engines.minmaxA(b, maxdepth=5)
+	minmax5 = engines.minmaxB(b, maxdepth=5)
 	snap = engines.snap(b)
-	Tourn(board=b, bp=minmax3, rp=moron, n=5)
+	Tourn(board=b, bp=minmax3, rp=minmax5, n=5)

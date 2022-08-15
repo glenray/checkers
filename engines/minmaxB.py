@@ -5,14 +5,19 @@ from board2 import Board
 from engines.engine import Engine
 
 '''
-MinmaxA: First attempt at min max evaluation
-Glen Pritchard -- 8/7/2022
+MinmaxB: Enhance MinmaxA to improve speed
+Glen Pritchard -- 8/15/2022
 '''
 class player(Engine):
-	def __init__(self, board, maxdepth=3, maketree=False):
+	'''
+	@param board obj: instance of board2.Board
+	@param maxdepth int: maximum depth of move tree
+	@param maketree bool: True to create entire move tree in self.tree
+	'''
+	def __init__(self, board, maxdepth = 3, maketree = False):
 		super(player, self).__init__( board )
-		self._name = "MinMaxA"
-		self._desc = "First attempt at minmax evaluation"
+		self._name = "MinMaxB"
+		self._desc = "A faster MinMaxA"
 		self.board = board
 		self.maxdepth = maxdepth
 		self.maketree = maketree
@@ -40,18 +45,23 @@ class player(Engine):
 	def max_value(self, upper_board, depth, maxdepth, parentNode=None):
 		'''
 		Find minmax's best move at this depth of the search tree
+		@param upper_board obj Board: a Board object
+		@param depth int: the current depth in the search tree
+		@param maxdepth int: the maximum depth of the search tree
+		@param parentNode obj moveNode: a
 		'''
 		v = float("-inf")
 		board = copy.deepcopy(upper_board)
 		board.getLegalMoves()
+		# Return the position's score at if at maxdepth
 		if depth == maxdepth:
 			return self.pieceCount(board), None
+		# if there no legal moves, minmax loses the game in this branc
 		elif len(board.legalMoves) == 0:
-			# minmax loses this branch
 			# breakpoint()
 			return -100, None
+		# iterate legal moves and call the next node level
 		else:
-			# iterate legal moves
 			for move in board.legalMoves2FEN():
 				tempBoard = copy.deepcopy(board)
 				tempBoard.makeMove(move)

@@ -29,4 +29,4 @@ class player( Engine ):
 		moveLen = len(moves)
 		if moveLen > 0:
 			moveNo = random.randint(0, moveLen-1)
-			return moves[moveNo], None
+			return moves[moveNo]

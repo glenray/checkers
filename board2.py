@@ -6,12 +6,12 @@ from positions import positions as pos
 """
 Board2
 Glen Pritchard 6/25/2019
-- Update from board.py which used an 8x8 nested array
+- Update from board.Board.position which used an 8x8 nested list
 - Maintain the state of a checkers board in a padded array of 46 elements
 - Generates a list of legal moves in a given position, including multiple jumps
 - Updates the board state when one of the legal moves is selected
 - Ends the game when the side to move has no legal moves
-Here is the layout of self.position list, where -- are OOB
+Here is the layout of board2.Board.position list, where '--' are out of bounds
 --  --  --  --  --
   37  38  39  40
 32  33  34  35  --
