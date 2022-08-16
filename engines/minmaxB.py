@@ -56,7 +56,7 @@ class player(Engine):
 		# Return the position's score at if at maxdepth
 		if depth == maxdepth:
 			return self.pieceCount(board), None
-		# if there no legal moves, minmax loses the game in this branc
+		# if there no legal moves, minmax loses the game in this branch
 		elif len(board.legalMoves) == 0:
 			# breakpoint()
 			return -100, None

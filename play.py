@@ -93,7 +93,7 @@ class Play:
 def main():
 	b = Board(pos['royalTour'])
 	rp = engines.minmaxA(b, maxdepth=5)
-	bp = engines.snap(b)
+	bp = engines.moron(b)
 	Play(b, bp, rp)
 
 if __name__ == '__main__':

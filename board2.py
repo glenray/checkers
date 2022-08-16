@@ -35,45 +35,64 @@ class Board:
 		self.onMove	= None
 		self.legalMoves = []
 		self.isJump = False
-		# 46 element list representing 32 board squares plus out of bounds padding
+		# list of 46 ints representing 32 board squares plus out of bounds padding
 		self.position = []
 		self.startFEN = '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]'
 		self.startPos = startPos if startPos != None else self.startFEN
-		# Array to convert FEN square no to self.position index value
+		# Tuple to convert FEN square no to self.position index value
 		# idx+1 is FEN sq position; value is index to self.position array
-		self.FEN2Pos = [37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22,14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8]
+		self.FEN2Pos = (37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22, 14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8)
+		self.fen = tuple(x for x in range(1,33))
 		self.pos2FEN = {v:k+1 for k,v in enumerate(self.FEN2Pos)}
 		self.initEmptyBoard()
 		self.parseFen()
+
+	def getSq(self, n):
+		'''
+		Get a square's piece value from Board.position from FEN square number.
+		n=1 will return the value of Board.position[37]
+		@param n: int: a FEN square number
+		@return int: the value of the square (EMPTY, BP, WP, etc) from Board.position
+		'''
+		return self.position[self.FEN2Pos[n-1]]
+
+	def setSq(self, n, value):
+		'''
+		Set a square's piece value in Board.position given FEN square no. n
+		@param n: int: a FEN Square number
+		@param value: int: a piece value, EMPTY, BP, BK, WP, WK)
+		'''
+		self.position[self.FEN2Pos[n-1]] = value
 
 	def reset(self):
 		self.__init__()
 	
 	def makeMove(self, move):
 		'''
-		Updates self.position to reflect the result of the selected move
-		param move: list squares involved in the move in FEN notation
+		Updates Board.position to reflect the result of the selected move
+		@param move list: squares involved in the move in FEN notation
 		'''
 		# if the move list is empty, the game is over
 		# or if the user input nonsense that returns None, don't do anything
 		if not move: return
 		# convert FEN square numbers to self.position array indexes
-		move = [self.FEN2Pos[FENmove-1] for FENmove in move]
-		pos = self.position
+		# move = [self.FEN2Pos[FENmove-1] for FENmove in move]
+		# pos = self.position
 		end = move[-1]
 		start = move[0]
 		# empty the start square and put piece on end square
-		pos[end] = pos[start]
-		pos[start] = 0
+		self.setSq(end, self.getSq(start))
+		self.setSq(start, self.EMPTY)
 		# empty jumped pieces. 
 		if abs(move[0] - move[1]) > 5:
 			for i, sq in enumerate(move):
 				if i == 0: continue
 				idx = int((move[i]+move[i-1])/2)
-				pos[idx] = 0
+				self.setSq(idx, 0)
+				# pos[idx] = 0
 		# king piece on back row
-		if end in (37, 38, 39, 40) and pos[end] == self.WP: pos[end] = self.WK
-		if end in (5, 6, 7, 8) and pos[end] == self.BP: pos[end] = self.BK
+		if end in (1,2,3,4) and self.getSq(end) == self.WP: self.setSq(end, self.WK)
+		if end in (29,30,31,32) and self.getSq(end) == self.BP: self.setSq(end, self.BK)
 		# toggle side to move
 		self.onMove = -self.onMove
 
@@ -87,12 +106,21 @@ class Board:
 			if self.isJump == False:
 				self.getNormalMove(i)
 
+		# Why does this not work instead of the for loop above?? Trying to use self.FEN2Pos to interate over only valid squares, not light square or OOB. But this messes up legalMoves2FEN below. Wierd.
+		# for i in self.FEN2Pos:
+		# 	# breakpoint()
+		# 	if self.position[i] not in (side): continue
+		# 	self.getJumpMove(self.position[i])
+		# 	if self.isJump == False:
+		# 		self.getNormalMove(self.position[i])
+
 	def legalMoves2FEN(self, lists = None):
 		# convert every element in list from internal board array to FEN position
+		# No idea why this works or what I was thinking
 		if lists == None: 
 			self.getLegalMoves()
 			lists = self.legalMoves
-		return [self.pos2FEN[el] if not isinstance(el,list) else self.legalMoves2FEN(el) for el in lists]
+		return [self.pos2FEN[el] if isinstance(el, int) else self.legalMoves2FEN(el) for el in lists]
 
 	def getNormalMove(self, sq):
 		# kings look forward and backward for a move
@@ -121,7 +149,7 @@ class Board:
 					if self.isJump == False:
 						self.isJump = True
 						del self.legalMoves[:]
-					newPosition = copy.deepcopy(position)
+					newPosition = copy.copy(position)
 					# move piece to landing square; clear origin and enemy squares
 					newPosition[landingSq] = newPosition[sq]
 					newPosition[sq] = 0
@@ -190,7 +218,6 @@ class Board:
 					# add 1 to convert piece to king no matter color, then remove K designation
 					pColor = pColor+1
 					sq = sq[1:]
-				
 				self.position[self.FEN2Pos[int(sq)-1]] = pColor
 
 	def pos2Fen(self):
@@ -210,5 +237,10 @@ class Board:
 		return f'[FEN "{onMove}:W{white}:B{black}"]'
 
 if __name__ == "__main__" :
-	a = Board(pos['royalTour'])
+	a = Board('[FEN "B:W18,26,27,25,11,19:B15K"]')
+	a.getLegalMoves()
+	print(legalMoves2FEN())
+	quit()
+	move = [9, 13]
+	a.makeMove(move)
 	print(a.printBoard())
