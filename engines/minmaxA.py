@@ -1,5 +1,6 @@
 import copy
 import random
+import time
 
 from board2 import Board
 from engines.engine import Engine
@@ -10,7 +11,7 @@ Glen Pritchard -- 8/7/2022
 '''
 class player(Engine):
 	def __init__(self, board, maxdepth=3, maketree=False):
-		super(player, self).__init__( board )
+		super(player, self).__init__(board)
 		self._name = "MinMaxA"
 		self._desc = "First attempt at minmax evaluation"
 		self.board = board
@@ -32,8 +33,12 @@ class player(Engine):
 		return self._desc
 	
 	def selectMove(self, position=None, moves=None):
+		startTime = time.time()
 		self.root = moveNode(self.board) if self.maketree else None
 		value, move = self.max_value(self.board, 0, self.maxdepth, self.root)
+		endTime = time.time()
+		self.elapsedTime = endTime - startTime
+		self.nps = self.totalNodes/self.elapsedTime
 		self.score = value
 		return move
 
@@ -61,6 +66,7 @@ class player(Engine):
 					parentNode.addChild(node)
 				else:
 					node = None
+				self.totalNodes += 1
 				v = max(v, self.min_value(tempBoard, depth+1, maxdepth, node))
 				if v > vtemp:
 					best_move = move
@@ -99,6 +105,7 @@ class player(Engine):
 					parentNode.addChild(node)
 				else:
 					node = None
+				self.totalNodes +=1
 				vtemp, placeholder = self.max_value(tempBoard, depth+1, maxdepth, node)
 				v = min(v, vtemp)
 				if parentNode:

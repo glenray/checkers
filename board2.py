@@ -96,6 +96,9 @@ class Board:
 		self.onMove = -self.onMove
 
 	def getLegalMoves(self):
+		'''
+		Set board2.Board.legalMoves as a list of all legal moves available in the current position. This method, along with the methods it calls, getJumpMove and getNormalMove, use the raw Board.position instead of the setSq and getSq utility functions. This because in determining whether a move is legal, the pieces on the edge of the board need to know what is out of bounds.
+		'''
 		del self.legalMoves[:]
 		self.isJump = False
 		side = (self.BP,self.BK) if self.onMove == 1 else (self.WP,self.WK)

@@ -99,4 +99,4 @@ if __name__ == "__main__" :
 	minmax3 = engines.minmaxA(b, maxdepth=3)
 	minmax5 = engines.minmaxB(b, maxdepth=5)
 	snap = engines.snap(b)
-	Tourn(board=b, bp=minmax3, rp=minmax5, n=5)
+	Tourn(board=b, bp=moron, rp=minmax3, n=5)

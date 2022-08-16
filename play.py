@@ -36,10 +36,10 @@ class Play:
 			if player == 'human':
 				move = self.getHumanMove(legalMoves)
 			else:
-				print(f"{player.name} is thinking...")
 				print(f"Possible moves are: {self.board.legalMoves2FEN()}")
+				print(f"{player.name} is thinking...")
 				move = player.selectMove(legalMoves)
-				print(f"{player.name} plays {move} ({player.score})")
+				print(f"{player.name} plays {move} (Score: {player.score}; Nodes: {player.totalNodes}; Time: {player.elapsedTime}; NPS: {player.nps})")
 			self.board.makeMove(move)
 			print(self.board.printBoard())
 
@@ -91,8 +91,8 @@ class Play:
 
 
 def main():
-	b = Board(pos['royalTour'])
-	rp = engines.minmaxA(b, maxdepth=5)
+	b = Board()
+	rp = engines.minmaxB(b, maxdepth=5)
 	bp = engines.moron(b)
 	Play(b, bp, rp)
 

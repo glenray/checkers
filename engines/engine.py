@@ -9,6 +9,9 @@ class Engine(ABC):
 		self.board = board
 		# if the engine returns a score, it is stored here for the most recent move returned. The score should be an integer between -100 and +100, where +100 is a win for the engine and -100 is a win for the opponent.
 		self.score = None
+		self.elapsedTime = None
+		self.totalNodes = 0
+		self.nps = 0
 		
 	@property
 	@abstractmethod
