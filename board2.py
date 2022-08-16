@@ -223,11 +223,12 @@ class Board:
 		# create FEN string from current position
 		black, white = [], []
 		onMove = "B" if self.onMove == 1 else "W"
-		for i, sq in enumerate(self.position):
-			if self.position[i] > 0:
-				sqNo = str(self.pos2FEN[i])
-				king = "K" if self.position[i] in (self.BK, self.WK) else ""
-				if self.position[i] > 2:
+		for i in self.fen:
+			if self.getSq(i) > 0:
+				sqNo = str(i)
+				sq = self.getSq(i)
+				king = "K" if sq in (self.BK, self.WK) else ""
+				if sq > 2:
 					white.append(f"{king}{sqNo}")
 				else:
 					black.append(f"{king}{sqNo}")
@@ -238,8 +239,6 @@ class Board:
 if __name__ == "__main__" :
 	a = Board()
 	print(a.printBoard())
-	a.getLegalMoves()
-	moves = a.legalMoves2FEN()
-	move = moves[-1]
-	a.makeMove(move)
-	print(a.printBoard())
+	pos = a.pos2Fen()
+	b = Board(pos)
+	print(b.printBoard())
