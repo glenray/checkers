@@ -170,22 +170,22 @@ class Board:
 		for i in [0,1,2,3,4,9,18,27,36,41,42,43,44,45]:
 			self.position[i] = self.OOB
 
-	def printBoard(self, position=None):
+	def printBoard(self):
 		'''
 		Returns a string of the position in human readable form
 
 		param: list: The Board.position, the internal representation of a board position
 		return: str: Human readable representation of the board position.
 		'''
-		position = self.position if position==None else position
 		border = "    -----------------"
 		offset, output, sqNum = "  ", f'\n{self.pos2Fen()}\n{border}\n', 1
-		for start in [37, 32, 28, 23, 19, 14, 10, 5]:
+		for start in [1,5,9,13,17,21,25,29]:
 			output+= "{:>2} | ".format(sqNum)
 			sqNum +=3
 			rowtxt = offset
 			for row in range(0,4):
-				sq = position[start+row]
+				sq = self.getSq(start+row)
+				# sq = position[start+row]
 				char = 'b' if sq in (1,2) else 'w'
 				char = char.upper() if sq %2 == 0 else char
 				if sq == 0: char='-'
