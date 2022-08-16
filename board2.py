@@ -75,9 +75,6 @@ class Board:
 		# if the move list is empty, the game is over
 		# or if the user input nonsense that returns None, don't do anything
 		if not move: return
-		# convert FEN square numbers to self.position array indexes
-		# move = [self.FEN2Pos[FENmove-1] for FENmove in move]
-		# pos = self.position
 		end = move[-1]
 		start = move[0]
 		# empty the start square and put piece on end square
@@ -91,8 +88,10 @@ class Board:
 				self.setSq(idx, 0)
 				# pos[idx] = 0
 		# king piece on back row
-		if end in (1,2,3,4) and self.getSq(end) == self.WP: self.setSq(end, self.WK)
-		if end in (29,30,31,32) and self.getSq(end) == self.BP: self.setSq(end, self.BK)
+		if end in (1,2,3,4) and self.getSq(end) == self.WP: 
+			self.setSq(end, self.WK)
+		if end in (29,30,31,32) and self.getSq(end) == self.BP: 
+			self.setSq(end, self.BK)
 		# toggle side to move
 		self.onMove = -self.onMove
 
@@ -237,10 +236,10 @@ class Board:
 		return f'[FEN "{onMove}:W{white}:B{black}"]'
 
 if __name__ == "__main__" :
-	a = Board('[FEN "B:W18,26,27,25,11,19:B15K"]')
+	a = Board()
+	print(a.printBoard())
 	a.getLegalMoves()
-	print(legalMoves2FEN())
-	quit()
-	move = [9, 13]
+	moves = a.legalMoves2FEN()
+	move = moves[-1]
 	a.makeMove(move)
 	print(a.printBoard())
