@@ -209,7 +209,6 @@ class Board:
 			"white": (sides[1][1:] if sides[1].startswith('W') else sides[1]).split(','),
 			"black": (sides[2][1:] if sides[2].startswith('B') else sides[2]).split(',')
 		}
-		
 		for color in pieces:
 			for sq in pieces[color]:
 				pColor = self.BP if color == 'black' else self.WP
@@ -217,7 +216,7 @@ class Board:
 					# add 1 to convert piece to king no matter color, then remove K designation
 					pColor = pColor+1
 					sq = sq[1:]
-				self.position[self.FEN2Pos[int(sq)-1]] = pColor
+				self.setSq(int(sq), pColor)
 
 	def pos2Fen(self):
 		# create FEN string from current position
