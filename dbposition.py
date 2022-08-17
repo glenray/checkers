@@ -22,7 +22,7 @@ def getEngineInfo(engine, move):
 
 pos = '[FEN "W:WK3:BK7,K26"]'
 b = Board(pos)
-debug(pos, b, engines.minmaxA(b, maxdepth=5))
+debug(pos, b, engines.minmaxB(b, maxdepth=5))
 
 
 '''

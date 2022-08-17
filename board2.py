@@ -22,9 +22,6 @@ Here is the layout of board2.Board.position list, where '--' are out of bounds
   10  11  12  13
 05  06  07  08  --
 --  --  --  --  --
-There are a couple of advantages to this:
-	1. The edge pieces will know not to move out of bounds
-	2. When jumping, the jumped man is always the average of the start square and the end square
 """
 class Board:
 	def __init__(self, startPos=None):
@@ -38,76 +35,49 @@ class Board:
 		self.onMove	= None
 		self.legalMoves = []
 		self.isJump = False
-		# list of 46 ints representing 32 board squares plus out of bounds padding
+		# 46 element list representing 32 board squares plus out of bounds padding
 		self.position = []
 		self.startFEN = '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]'
 		self.startPos = startPos if startPos != None else self.startFEN
-		# Tuple to convert FEN square no to self.position index value
+		# Array to convert FEN square no to self.position index value
 		# idx+1 is FEN sq position; value is index to self.position array
-		self.FEN2Pos = (37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22, 14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8)
-		self.fen = tuple(x for x in range(1,33))
+		self.FEN2Pos = [37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22,14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8]
 		self.pos2FEN = {v:k+1 for k,v in enumerate(self.FEN2Pos)}
 		self.initEmptyBoard()
 		self.parseFen()
-
-	def getSq(self, n):
-		'''
-		Get a square's piece value from Board.position from FEN square number.
-		n=1 will return the value of Board.position[37]
-		@param n: int: a FEN square number
-		@return int: the value of the square (EMPTY, BP, WP, etc) from Board.position
-		'''
-		return self.position[self.FEN2Pos[n-1]]
-
-	def setSq(self, n, value):
-		'''
-		Set a square's piece value in Board.position given FEN square no. n
-		@param n: int: a FEN Square number
-		@param value: int: a piece value, EMPTY, BP, BK, WP, WK)
-		'''
-		self.position[self.FEN2Pos[n-1]] = value
 
 	def reset(self):
 		self.__init__()
 	
 	def makeMove(self, move):
 		'''
-		Updates Board.position to reflect the result of the selected move
-		@param move list: squares involved in the move in FEN notation
+		Updates self.position to reflect the result of the selected move
+		param move: list squares involved in the move in FEN notation
 		'''
 		# if the move list is empty, the game is over
 		# or if the user input nonsense that returns None, don't do anything
 		if not move: return
-		breakpoint()
+		# convert FEN square numbers to self.position array indexes
+		move = [self.FEN2Pos[FENmove-1] for FENmove in move]
+		pos = self.position
 		end = move[-1]
 		start = move[0]
 		# empty the start square and put piece on end square
-		self.setSq(end, self.getSq(start))
-		self.setSq(start, self.EMPTY)
+		pos[end] = pos[start]
+		pos[start] = 0
 		# empty jumped pieces. 
 		if abs(move[0] - move[1]) > 5:
 			for i, sq in enumerate(move):
 				if i == 0: continue
-				y = move[i] - move[i-1]
-				if abs(y) == 7:
-
-				else:
-
 				idx = int((move[i]+move[i-1])/2)
-				self.setSq(idx, 0)
-				# pos[idx] = 0
+				pos[idx] = 0
 		# king piece on back row
-		if end in (1,2,3,4) and self.getSq(end) == self.WP: 
-			self.setSq(end, self.WK)
-		if end in (29,30,31,32) and self.getSq(end) == self.BP: 
-			self.setSq(end, self.BK)
+		if end in (37, 38, 39, 40) and pos[end] == self.WP: pos[end] = self.WK
+		if end in (5, 6, 7, 8) and pos[end] == self.BP: pos[end] = self.BK
 		# toggle side to move
 		self.onMove = -self.onMove
 
 	def getLegalMoves(self):
-		'''
-		Set board2.Board.legalMoves as a list of all legal moves available in the current position. This method, along with the methods it calls, getJumpMove and getNormalMove, use the raw Board.position instead of the setSq and getSq utility functions. This because in determining whether a move is legal, the pieces on the edge of the board need to know what is out of bounds.
-		'''
 		del self.legalMoves[:]
 		self.isJump = False
 		side = (self.BP,self.BK) if self.onMove == 1 else (self.WP,self.WK)
@@ -117,21 +87,12 @@ class Board:
 			if self.isJump == False:
 				self.getNormalMove(i)
 
-		# Why does this not work instead of the for loop above?? Trying to use self.FEN2Pos to interate over only valid squares, not light square or OOB. But this messes up legalMoves2FEN below. Wierd.
-		# for i in self.FEN2Pos:
-		# 	# breakpoint()
-		# 	if self.position[i] not in (side): continue
-		# 	self.getJumpMove(self.position[i])
-		# 	if self.isJump == False:
-		# 		self.getNormalMove(self.position[i])
-
 	def legalMoves2FEN(self, lists = None):
 		# convert every element in list from internal board array to FEN position
-		# No idea why this works or what I was thinking
 		if lists == None: 
 			self.getLegalMoves()
 			lists = self.legalMoves
-		return [self.pos2FEN[el] if isinstance(el, int) else self.legalMoves2FEN(el) for el in lists]
+		return [self.pos2FEN[el] if not isinstance(el,list) else self.legalMoves2FEN(el) for el in lists]
 
 	def getNormalMove(self, sq):
 		# kings look forward and backward for a move
@@ -160,7 +121,7 @@ class Board:
 					if self.isJump == False:
 						self.isJump = True
 						del self.legalMoves[:]
-					newPosition = copy.copy(position)
+					newPosition = copy.deepcopy(position)
 					# move piece to landing square; clear origin and enemy squares
 					newPosition[landingSq] = newPosition[sq]
 					newPosition[sq] = 0
@@ -182,22 +143,22 @@ class Board:
 		for i in [0,1,2,3,4,9,18,27,36,41,42,43,44,45]:
 			self.position[i] = self.OOB
 
-	def printBoard(self):
+	def printBoard(self, position=None):
 		'''
 		Returns a string of the position in human readable form
 
 		param: list: The Board.position, the internal representation of a board position
 		return: str: Human readable representation of the board position.
 		'''
+		position = self.position if position==None else position
 		border = "    -----------------"
 		offset, output, sqNum = "  ", f'\n{self.pos2Fen()}\n{border}\n', 1
-		for start in [1,5,9,13,17,21,25,29]:
+		for start in [37, 32, 28, 23, 19, 14, 10, 5]:
 			output+= "{:>2} | ".format(sqNum)
 			sqNum +=3
 			rowtxt = offset
 			for row in range(0,4):
-				sq = self.getSq(start+row)
-				# sq = position[start+row]
+				sq = position[start+row]
 				char = 'b' if sq in (1,2) else 'w'
 				char = char.upper() if sq %2 == 0 else char
 				if sq == 0: char='-'
@@ -221,6 +182,7 @@ class Board:
 			"white": (sides[1][1:] if sides[1].startswith('W') else sides[1]).split(','),
 			"black": (sides[2][1:] if sides[2].startswith('B') else sides[2]).split(',')
 		}
+		
 		for color in pieces:
 			for sq in pieces[color]:
 				pColor = self.BP if color == 'black' else self.WP
@@ -228,18 +190,18 @@ class Board:
 					# add 1 to convert piece to king no matter color, then remove K designation
 					pColor = pColor+1
 					sq = sq[1:]
-				self.setSq(int(sq), pColor)
+				
+				self.position[self.FEN2Pos[int(sq)-1]] = pColor
 
 	def pos2Fen(self):
 		# create FEN string from current position
 		black, white = [], []
 		onMove = "B" if self.onMove == 1 else "W"
-		for i in self.fen:
-			if self.getSq(i) > 0:
-				sqNo = str(i)
-				sq = self.getSq(i)
-				king = "K" if sq in (self.BK, self.WK) else ""
-				if sq > 2:
+		for i, sq in enumerate(self.position):
+			if self.position[i] > 0:
+				sqNo = str(self.pos2FEN[i])
+				king = "K" if self.position[i] in (self.BK, self.WK) else ""
+				if self.position[i] > 2:
 					white.append(f"{king}{sqNo}")
 				else:
 					black.append(f"{king}{sqNo}")
@@ -248,8 +210,5 @@ class Board:
 		return f'[FEN "{onMove}:W{white}:B{black}"]'
 
 if __name__ == "__main__" :
-	a = Board()
+	a = Board(pos['royalTour'])
 	print(a.printBoard())
-	pos = a.pos2Fen()
-	b = Board(pos)
-	print(b.printBoard())
