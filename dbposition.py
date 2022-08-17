@@ -14,15 +14,16 @@ def debug(pos, board, engine):
 	print(f"{engine.name} to move as {sides[board.onMove]}.")
 	print("Thinking...", end='\r')
 	make_move(board, engine)
-	print(board.printBoard())
 
 def getEngineInfo(engine, move):
 	return f"{engine.name} - {sides[-engine.board.onMove]}'s Move: {move}; Score: {engine.score}; Time: {engine.elapsedTime}; Nodes: {engine.totalNodes}; nps: {engine.nps})"
 
 
-pos = '[FEN "W:WK3:BK7,K26"]'
-b = Board(pos)
-debug(pos, b, engines.minmaxB(b, maxdepth=5))
+pos = positions['royalTour']
+b = Board()
+debug(pos, b, engines.minmaxA(b, maxdepth=7))
+b = Board()
+debug(pos, b, engines.minmaxB(b, maxdepth=7))
 
 
 '''

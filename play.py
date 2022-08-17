@@ -92,7 +92,7 @@ class Play:
 
 def main():
 	b = Board()
-	rp = engines.minmaxB(b, maxdepth=5)
+	rp = engines.minmaxB(b, maxdepth=6)
 	bp = engines.moron(b)
 	Play(b, bp, rp)
 

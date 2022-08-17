@@ -4,6 +4,7 @@ import time
 
 from board2 import Board
 from engines.engine import Engine
+from engines.moveNode import moveNode
 
 '''
 MinmaxA: First attempt at min max evaluation
@@ -126,64 +127,6 @@ class player(Engine):
 		# we should evaluate the position from the perspective of the side to move
 		blackScore = (bp + (bk*2)) - (wp + (wk*2))
 		return blackScore if self.board.onMove == 1 else -blackScore 
-
-class moveNode:
-	def __init__(self, board, parent = None):
-		self.board = board
-		self.parent = parent
-		self.children = []
-
-	def addChild(self, child):
-		self.children.append(child)
-		child.parent = self
-
-	def printChildren(self):
-		for i, child in enumerate(self.children):
-			print(i)
-			print(child.__repr__())
-
-	def getRootNode(self):
-		''' Returns tree root node '''
-		if self.parent == None:
-			return self
-		x = self.parent
-		while True:
-			if x.parent == None:
-				return x
-			else:
-				x = x.parent
-
-	def countNodes(self):
-		''' Return count of this nodes children and all decendents '''
-		return self._countChildren() + len(self.children)
-
-	def _countChildren(self):
-		''' 
-		Return the count of all child nodes under the current node
-		This does not include the child nodes within the current node
-		'''
-		n = 0
-		for child in self.children:
-			n+=len(child.children)
-			n+=child._countChildren()
-		return n
-
-	def getLeafNodes(self):
-		'''
-		@return: list: list of nodes from bottom of tree, i.e.,
-			those no children
-		'''
-		result = []
-		for child in self.children:
-			if child.children:
-				result += child.getLeafNodes()
-			else:
-				result.append(child)
-		return result
-
-
-	def __repr__(self):
-		return self.board.printBoard()
 
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
