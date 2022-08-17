@@ -24,6 +24,7 @@ class player(Engine):
 		self.maketree = maketree
 		# if maketree is True, the root of the move tree will be stored here
 		self.root = None
+		self.scratchBoard = copy.deepcopy(self.board)
 
 	@property
 	def name(self):
@@ -40,36 +41,45 @@ class player(Engine):
 	def selectMove(self, position=None, moves=None):
 		startTime = time.time()
 		self.root = moveNode(self.board) if self.maketree else None
-		value, move = self.max_value(self.board, 0, self.maxdepth, self.root)
+		pos = (copy.copy(self.board.position), self.board.onMove)
+		value, move = self.max_value(
+			pos, 
+			0, 
+			self.maxdepth, 
+			self.root)
 		endTime = time.time()
 		self.elapsedTime = endTime - startTime
-		self.nps = self.totalNodes/self.elapsedTime
+		if self.elapsedTime == 0:
+			self.nps = "Divide by Zero"
+		else:
+			self.nps = self.totalNodes/self.elapsedTime
 		self.score = value
 		return move
 
-	def max_value(self, upper_board, depth, maxdepth, parentNode=None):
+	def max_value(self, upper_pos, depth, maxdepth, parentNode=None):
 		'''
-		Find minmax's best move at this depth of the search tree
+		Find minmax's best move at depth of the search tree
 		@param upper_board obj Board: a Board object
 		@param depth int: the current depth in the search tree
 		@param maxdepth int: the maximum depth of the search tree
 		@param parentNode obj moveNode: a
 		'''
 		v = float("-inf")
-		board = copy.deepcopy(upper_board)
-		board.getLegalMoves()
+		self.setScratchBoard(upper_pos)
+		self.scratchBoard.getLegalMoves()
+		
 		# Return the position's score at if at maxdepth
 		if depth == maxdepth:
-			return self.pieceCount(board), None
+			return self.pieceCount(self.scratchBoard), None
 		# if there no legal moves, minmax loses the game in this branch
-		elif len(board.legalMoves) == 0:
-			# breakpoint()
+		elif len(self.scratchBoard.legalMoves) == 0:
 			return -100, None
 		# iterate legal moves and call the next node level
 		else:
-			for move in board.legalMoves2FEN():
-				tempBoard = copy.deepcopy(board)
-				tempBoard.makeMove(move)
+			for move in self.scratchBoard.legalMoves2FEN():
+				# remember the current position
+				tempPos = upper_pos
+				self.scratchBoard.makeMove(move)
 				vtemp = v
 				if parentNode:
 					node = moveNode(tempBoard)
@@ -77,51 +87,60 @@ class player(Engine):
 				else:
 					node = None
 				self.totalNodes +=1
-				v = max(v, self.min_value(tempBoard, depth+1, maxdepth, node))
+				v = max(v, self.min_value(
+					(copy.copy(self.scratchBoard.position), self.scratchBoard.onMove), 
+					depth+1, 
+					maxdepth, 
+					node))
 				if v > vtemp:
 					best_move = move
 				if parentNode:
 					node.v = self.pieceCount(tempBoard)
 					node.move = move
-
-				# attempts to solve the rock back and forth problem
-				# but it seems to make minmax much dumber??
-				# if depth == 0 and v == vtemp:
-				# 	best_move = random.choice((best_move, move))
-			
+				# return scratch board to original state for next legal move iteration
+				self.setScratchBoard(tempPos)
 			return v, best_move
 
-	def min_value(self, upper_board, depth, maxdepth, parentNode=None):
+	def min_value(self, upper_pos, depth, maxdepth, parentNode=None):
 		'''
 		Find the opponent's best move at this depth of the search tree
 		'''
 		v = float("inf")
-		board = copy.deepcopy(upper_board)
-		board.getLegalMoves()
+		self.setScratchBoard(upper_pos)
+		self.scratchBoard.getLegalMoves()
 		if depth == maxdepth:
-			return self.pieceCount(board)
-		elif len(board.legalMoves) == 0:
+			return self.pieceCount(self.scratchBoard)
+		elif len(self.scratchBoard.legalMoves) == 0:
 			# opponent loses in this branch
 			# breakpoint()
 			return 100
 		else:
-			for move in board.legalMoves2FEN():
-				# the problem is that this move is not unmade when the loop
-				# continues
-				tempBoard = copy.deepcopy(board)
-				tempBoard.makeMove(move)
+			for move in self.scratchBoard.legalMoves2FEN():
+				# Save the current position
+				tempPos = upper_pos
+				self.scratchBoard.makeMove(move)
 				if parentNode:
 					node = moveNode(tempBoard)
 					parentNode.addChild(node)
 				else:
 					node = None
 				self.totalNodes +=1
-				vtemp, placeholder = self.max_value(tempBoard, depth+1, maxdepth, node)
+				vtemp, placeholder = self.max_value(
+					(copy.copy(self.scratchBoard.position), self.scratchBoard.onMove), 
+					depth+1, 
+					maxdepth, 
+					node)
 				v = min(v, vtemp)
 				if parentNode:
 					node.move = move
 					node.v = self.pieceCount(tempBoard)
+				# return scratch board to original state for next move
+				self.setScratchBoard(tempPos)
 			return v
+
+	def setScratchBoard(self, pos):
+		self.scratchBoard.position = pos[0]
+		self.scratchBoard.onMove = pos[1]
 
 	def pieceCount(self, board = None):
 		# breakpoint()
@@ -194,5 +213,9 @@ class moveNode:
 
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
-	p = player(Board(), maxdepth=5)
-	p.selectMove()
+	b = Board()
+	p = player(b, maxdepth=7)
+	move = p.selectMove()
+	p.board.makeMove(move)
+	print(b.printBoard())
+	print(f"{p.name} moves {move}, Score: {p.score}, \nTime: {p.elapsedTime}; nodes: {p.totalNodes}; nps: {p.nps}")

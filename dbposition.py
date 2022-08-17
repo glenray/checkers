@@ -1,27 +1,28 @@
 from board2 import Board
 import engines
 
+from positions import positions
+
 sides = {1 : "Black", -1 : "White"}
 
 def make_move(board, engine):
 	move = engine.selectMove()
 	board.makeMove(move)
-	print(f"{engine.name} - {sides[-board.onMove]}'s Move: {move}; Score: {engine.score}")
-	print(board.printBoard())
+	print(getEngineInfo(engine, move))
 
 def debug(pos, board, engine):
-	print(f"Starting Position, {sides[board.onMove]} to move.")
+	print(f"{engine.name} to move as {sides[board.onMove]}.")
+	print("Thinking...", end='\r')
+	make_move(board, engine)
 	print(board.printBoard())
 
-	make_move(board, engine)
+def getEngineInfo(engine, move):
+	return f"{engine.name} - {sides[-engine.board.onMove]}'s Move: {move}; Score: {engine.score}; Time: {engine.elapsedTime}; Nodes: {engine.totalNodes}; nps: {engine.nps})"
 
 
-pos = '[FEN "W:W31,32,25,27,28,21,22,23,K1:B15,16,9,5,7,4"]'
+pos = '[FEN "W:WK3:BK7,K26"]'
 b = Board(pos)
-# debug(pos, b, engines.minmaxA(b, maxdepth=3))
-# debug(pos, b, engines.minmaxB(b, maxdepth=3))
-# debug(pos, b, engines.snap(b))
-debug(pos, b, engines.moron(b))
+debug(pos, b, engines.minmaxA(b, maxdepth=5))
 
 
 '''

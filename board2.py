@@ -22,6 +22,9 @@ Here is the layout of board2.Board.position list, where '--' are out of bounds
   10  11  12  13
 05  06  07  08  --
 --  --  --  --  --
+There are a couple of advantages to this:
+	1. The edge pieces will know not to move out of bounds
+	2. When jumping, the jumped man is always the average of the start square and the end square
 """
 class Board:
 	def __init__(self, startPos=None):
@@ -75,6 +78,7 @@ class Board:
 		# if the move list is empty, the game is over
 		# or if the user input nonsense that returns None, don't do anything
 		if not move: return
+		breakpoint()
 		end = move[-1]
 		start = move[0]
 		# empty the start square and put piece on end square
@@ -84,6 +88,11 @@ class Board:
 		if abs(move[0] - move[1]) > 5:
 			for i, sq in enumerate(move):
 				if i == 0: continue
+				y = move[i] - move[i-1]
+				if abs(y) == 7:
+
+				else:
+
 				idx = int((move[i]+move[i-1])/2)
 				self.setSq(idx, 0)
 				# pos[idx] = 0

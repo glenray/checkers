@@ -38,7 +38,10 @@ class player(Engine):
 		value, move = self.max_value(self.board, 0, self.maxdepth, self.root)
 		endTime = time.time()
 		self.elapsedTime = endTime - startTime
-		self.nps = self.totalNodes/self.elapsedTime
+		if self.elapsedTime == 0: 
+			self.nps = "Divide by Zero"
+		else:
+			self.nps = self.totalNodes/self.elapsedTime
 		self.score = value
 		return move
 

@@ -1,4 +1,4 @@
-Solving The Royal Tour with MinMaxA
+Solving The Royal Tour Problem
 
 White to move. White can force a win.
 The moves result in the FEN positions.
