@@ -50,11 +50,7 @@ class player(Engine):
 		startTime = time.time()
 		self.root = moveNode(copy.deepcopy(self.board)) if self.maketree else None
 		pos = (copy.copy(self.board.position), self.board.onMove)
-		value, move = self.max_value(
-			pos, 
-			0, 
-			self.maxdepth, 
-			self.root)
+		value, move = self.max_value(pos, 0, self.root)
 		endTime = time.time()
 		self.elapsedTime = round(endTime - startTime, 2)
 		try:
@@ -64,19 +60,18 @@ class player(Engine):
 		self.score = value
 		return move
 
-	def max_value(self, upper_pos, depth, maxdepth, parentNode=None):
+	def max_value(self, upper_pos, depth, parentNode=None):
 		'''
 		Find minmax's best move at depth of the search tree
 		@param upper_board obj Board: a Board object
 		@param depth int: the current depth in the search tree
-		@param maxdepth int: the maximum depth of the search tree
 		@param parentNode obj moveNode: a
 		'''
 		self.setScratchBoard(upper_pos)
 		self.scratchBoard.getLegalMoves()
 		v = float("-inf")
 		# Return the position's score at if at maxdepth
-		if depth == maxdepth:
+		if depth == self.maxdepth:
 			return self.pieceCount(self.scratchBoard), None
 		# if there no legal moves, minmax loses the game in this branch
 		elif len(self.scratchBoard.legalMoves) == 0:
@@ -96,7 +91,6 @@ class player(Engine):
 				v = max(v, self.min_value(
 					(copy.copy(self.scratchBoard.position), self.scratchBoard.onMove), 
 					depth+1, 
-					maxdepth, 
 					node))
 				if v > vtemp:
 					best_move = move
@@ -105,14 +99,14 @@ class player(Engine):
 					node.move = move
 			return v, best_move
 
-	def min_value(self, upper_pos, depth, maxdepth, parentNode=None):
+	def min_value(self, upper_pos, depth, parentNode=None):
 		'''
 		Find the opponent's best move at this depth of the search tree
 		'''
 		self.setScratchBoard(upper_pos)
 		self.scratchBoard.getLegalMoves()
 		v = float("inf")
-		if depth == maxdepth:
+		if depth == self.maxdepth:
 			return self.pieceCount(self.scratchBoard)
 		elif len(self.scratchBoard.legalMoves) == 0:
 			# opponent loses in this branch
@@ -130,7 +124,6 @@ class player(Engine):
 				vtemp, placeholder = self.max_value(
 					(copy.copy(self.scratchBoard.position), self.scratchBoard.onMove), 
 					depth+1, 
-					maxdepth, 
 					node)
 				v = min(v, vtemp)
 				if parentNode:
@@ -155,7 +148,7 @@ class player(Engine):
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
 	b = Board(pos)
-	p = player(b, maxdepth=7)
+	p = player(b, maxdepth=8)
 	move = p.selectMove()
 	p.board.makeMove(move)
 	print(b.printBoard())
