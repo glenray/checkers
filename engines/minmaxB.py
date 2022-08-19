@@ -8,6 +8,12 @@ from engines.moveNode import moveNode
 
 '''
 MinmaxB: Enhance MinmaxA to improve speed
+MinmaxA deep copied the board2.Board instance for each
+node in the move tree.
+MinmanB copies only the board2.Board.position and board2.Board.onMove.
+This results in approx 5x increase in speed over MinmaxA.
+MinmaxB produces the same move tree as MinmaxA.
+Roughly, MinmaxB can probe one level deeper than MinmaxA in the same amount of time.
 Glen Pritchard -- 8/15/2022
 '''
 class player(Engine):
@@ -50,8 +56,11 @@ class player(Engine):
 			self.maxdepth, 
 			self.root)
 		endTime = time.time()
-		self.elapsedTime = endTime - startTime
-		self.nps = self.totalNodes/self.elapsedTime
+		self.elapsedTime = round(endTime - startTime, 2)
+		try:
+			self.nps = int(self.totalNodes/self.elapsedTime)
+		except ZeroDivisionError:
+			self.nps = "0 Error"
 		self.score = value
 		return move
 

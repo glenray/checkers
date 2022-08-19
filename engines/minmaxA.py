@@ -7,7 +7,7 @@ from engines.engine import Engine
 from engines.moveNode import moveNode
 
 '''
-MinmaxA: First attempt at min max evaluation
+MinmaxA: First attempt at minimax evaluation
 Glen Pritchard -- 8/7/2022
 '''
 class player(Engine):
@@ -34,15 +34,16 @@ class player(Engine):
 		return self._desc
 	
 	def selectMove(self, position=None, moves=None):
+		self.totalNodes = 0
 		startTime = time.time()
 		self.root = moveNode(self.board) if self.maketree else None
 		value, move = self.max_value(self.board, 0, self.maxdepth, self.root)
 		endTime = time.time()
-		self.elapsedTime = endTime - startTime
-		if self.elapsedTime == 0: 
-			self.nps = "Divide by Zero"
-		else:
-			self.nps = self.totalNodes/self.elapsedTime
+		self.elapsedTime = round(endTime - startTime, 2)
+		try:
+			self.nps = int(self.totalNodes/self.elapsedTime)
+		except ZeroDivisionError:
+			self.nps = "0 Error"
 		self.score = value
 		return move
 

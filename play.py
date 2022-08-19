@@ -27,7 +27,7 @@ class Play:
 		while True:
 			sidetomove = "Black" if self.board.onMove == 1 else "White"
 			player = self.bp if sidetomove == "Black" else self.rp
-			print(f"{sidetomove} to move:")
+			print(f"{sidetomove} ({player.name}) to move:")
 			self.board.getLegalMoves()
 			legalMoves = self.board.legalMoves2FEN()
 			if len(legalMoves) == 0:
@@ -36,10 +36,12 @@ class Play:
 			if player == 'human':
 				move = self.getHumanMove(legalMoves)
 			else:
-				print(f"Possible moves are: {self.board.legalMoves2FEN()}")
-				print(f"{player.name} is thinking...")
+				n = len(legalMoves)
+				twoB = 'are' if n > 1 else 'is'
+				print(f"{n} moves {twoB} possible: {self.board.legalMoves2FEN()}")
+				print(f"{player.name} is thinking...", end='\r')
 				move = player.selectMove(legalMoves)
-				print(f"{player.name} plays {move} (Score: {player.score}; Nodes: {player.totalNodes}; Time: {player.elapsedTime}; NPS: {player.nps})")
+				print(f"{player.name} plays {move}\n(Score: {player.score}; Nodes: {player.totalNodes}; Time: {player.elapsedTime}; NPS: {player.nps})")
 			self.board.makeMove(move)
 			print(self.board.printBoard())
 
@@ -91,8 +93,9 @@ class Play:
 
 
 def main():
-	b = Board()
-	rp = engines.minmaxB(b, maxdepth=6)
+	pos = '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]'
+	b = Board(pos)
+	rp = engines.minmaxB(b, maxdepth=9)
 	bp = engines.moron(b)
 	Play(b, bp, rp)
 
