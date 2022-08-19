@@ -21,14 +21,16 @@ class player(Engine):
 	@param board obj: instance of board2.Board
 	@param maxdepth int: maximum depth of move tree
 	@param ab bool: Flag to use alpha beta pruning
+	@param randomize bool: randomize the order of legal moves to avoid deterministic play
 	@param maketree bool: True to create entire move tree in self.root
 	'''
-	def __init__(self, board, maxdepth=3, ab=False, maketree=False):
+	def __init__(self, board, maxdepth=3, ab=False, randomize=True, maketree=False):
 		super(player, self).__init__( board )
 		self._name = "MinMaxB"
 		self._desc = "A faster MinMaxA"
 		self.board = board
 		self.maxdepth = maxdepth
+		self.randomize = randomize
 		self.maketree = maketree
 		self.ab = ab
 		# if maketree is True, the root of the move tree will be stored here
@@ -80,7 +82,7 @@ class player(Engine):
 			return -100, None
 		# iterate legal moves and call the next node level
 		else:
-			for move in self.scratchBoard.legalMoves2FEN():
+			for move in self.getFenMoveList():
 				self.setScratchBoard(upper_pos)
 				self.scratchBoard.makeMove(move)
 				vtemp = v
@@ -121,7 +123,7 @@ class player(Engine):
 			# opponent loses in this branch
 			return 100
 		else:
-			for move in self.scratchBoard.legalMoves2FEN():
+			for move in self.getFenMoveList():
 				self.setScratchBoard(upper_pos)
 				self.scratchBoard.makeMove(move)
 				if parentNode:
@@ -145,6 +147,12 @@ class player(Engine):
 					node.move = move
 					node.v = self.pieceCount(self.scratchBoard)
 			return v
+
+	def getFenMoveList(self):
+		fenmoves = self.scratchBoard.legalMoves2FEN()
+		if self.randomize:
+			random.shuffle(fenmoves)
+		return fenmoves
 
 	def setScratchBoard(self, pos):
 		self.scratchBoard.position = copy.copy(pos[0])

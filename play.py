@@ -96,7 +96,7 @@ def main():
 	pos = '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]'
 	b = Board()
 	rp = engines.minmaxB(b, maxdepth=10, ab=True)
-	bp = engines.snap(b)
+	bp = engines.minmaxB(b, maxdepth=5, ab=True)
 	Play(b, bp, rp)
 
 if __name__ == '__main__':
