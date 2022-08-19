@@ -20,15 +20,17 @@ class player(Engine):
 	'''
 	@param board obj: instance of board2.Board
 	@param maxdepth int: maximum depth of move tree
-	@param maketree bool: True to create entire move tree in self.tree
+	@param ab bool: Flag to use alpha beta pruning
+	@param maketree bool: True to create entire move tree in self.root
 	'''
-	def __init__(self, board, maxdepth = 3, maketree = False):
+	def __init__(self, board, maxdepth=3, ab=False, maketree=False):
 		super(player, self).__init__( board )
 		self._name = "MinMaxB"
 		self._desc = "A faster MinMaxA"
 		self.board = board
 		self.maxdepth = maxdepth
 		self.maketree = maketree
+		self.ab = ab
 		# if maketree is True, the root of the move tree will be stored here
 		self.root = None
 		self.scratchBoard = copy.deepcopy(self.board)
@@ -50,7 +52,7 @@ class player(Engine):
 		startTime = time.time()
 		self.root = moveNode(copy.deepcopy(self.board)) if self.maketree else None
 		pos = (copy.copy(self.board.position), self.board.onMove)
-		value, move = self.max_value(pos, 0, self.root)
+		value, move = self.max_value(pos, 0, float("-inf"), float("inf"), self.root)
 		endTime = time.time()
 		self.elapsedTime = round(endTime - startTime, 2)
 		try:
@@ -60,7 +62,7 @@ class player(Engine):
 		self.score = value
 		return move
 
-	def max_value(self, upper_pos, depth, parentNode=None):
+	def max_value(self, upper_pos, depth, alpha, beta, parentNode=None):
 		'''
 		Find minmax's best move at depth of the search tree
 		@param upper_board obj Board: a Board object
@@ -91,15 +93,22 @@ class player(Engine):
 				v = max(v, self.min_value(
 					(copy.copy(self.scratchBoard.position), self.scratchBoard.onMove), 
 					depth+1, 
+					alpha,
+					beta,
 					node))
 				if v > vtemp:
 					best_move = move
+				# pruning
+				if self.ab:
+					if v >= beta:
+						return v, best_move
+					alpha = max(alpha, v)
 				if parentNode:
 					node.v = self.pieceCount(self.scratchBoard)
 					node.move = move
 			return v, best_move
 
-	def min_value(self, upper_pos, depth, parentNode=None):
+	def min_value(self, upper_pos, depth, alpha, beta, parentNode=None):
 		'''
 		Find the opponent's best move at this depth of the search tree
 		'''
@@ -124,8 +133,14 @@ class player(Engine):
 				vtemp, placeholder = self.max_value(
 					(copy.copy(self.scratchBoard.position), self.scratchBoard.onMove), 
 					depth+1, 
+					alpha,
+					beta, 
 					node)
 				v = min(v, vtemp)
+				if self.ab:
+					if v <= alpha:
+						return v
+					beta = min(beta, v)
 				if parentNode:
 					node.move = move
 					node.v = self.pieceCount(self.scratchBoard)
@@ -148,7 +163,7 @@ class player(Engine):
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
 	b = Board(pos)
-	p = player(b, maxdepth=8)
+	p = player(b, maxdepth=8, ab=True)
 	move = p.selectMove()
 	p.board.makeMove(move)
 	print(b.printBoard())
