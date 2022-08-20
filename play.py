@@ -37,8 +37,8 @@ class Play:
 				move = self.getHumanMove(legalMoves)
 			else:
 				n = len(legalMoves)
-				twoB = 'are' if n > 1 else 'is'
-				print(f"{n} moves {twoB} possible: {self.board.legalMoves2FEN()}")
+				movesStr = "moves" if n > 1 else "move"
+				print(f"{n} possible {movesStr}: {self.board.legalMoves2FEN()}")
 				print(f"{player.name} is thinking...", end='\r')
 				move = player.selectMove(legalMoves)
 				print(f"{player.name} plays {move}\n(Score: {player.score}; Nodes: {player.totalNodes}; Time: {player.elapsedTime}; NPS: {player.nps})")
@@ -95,8 +95,8 @@ class Play:
 def main():
 	pos = '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]'
 	b = Board()
-	rp = engines.minmaxB(b, maxdepth=10, ab=True)
-	bp = engines.minmaxB(b, maxdepth=5, ab=True)
+	bp = engines.minmaxB(b, maxdepth=10, ab=True)
+	rp = engines.minmaxB(b, maxdepth=7, ab=True)
 	Play(b, bp, rp)
 
 if __name__ == '__main__':

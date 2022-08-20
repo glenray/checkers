@@ -20,8 +20,8 @@ class player(Engine):
 	'''
 	@param board obj: instance of board2.Board
 	@param maxdepth int: maximum depth of move tree
-	@param ab bool: Flag to use alpha beta pruning
-	@param randomize bool: randomize the order of legal moves to avoid deterministic play
+	@param ab bool: True to use alpha-beta pruning
+	@param randomize bool: True to randomize the order of legal moves to avoid deterministic play
 	@param maketree bool: True to create entire move tree in self.root
 	'''
 	def __init__(self, board, maxdepth=3, ab=False, randomize=True, maketree=False):
@@ -133,7 +133,10 @@ class player(Engine):
 					node = None
 				self.totalNodes +=1
 				vtemp, placeholder = self.max_value(
-					(copy.copy(self.scratchBoard.position), self.scratchBoard.onMove), 
+					(
+						copy.copy(self.scratchBoard.position), 
+						self.scratchBoard.onMove
+					), 
 					depth+1, 
 					alpha,
 					beta, 
