@@ -96,6 +96,6 @@ class Tourn():
 if __name__ == "__main__" :
 	b = Board()
 	moron = engines.moron(b)
-	minmaxAB = engines.minmaxB(b, maxdepth=8, ab=True)
-	snap = engines.snap(b)
-	Tourn(board=b, bp=moron, rp=minmaxAB, n=10)
+	minmaxAB = engines.minmaxB(b, maxdepth=3, ab=True)
+	negamax = engines.negamax(b, maxdepth=7, ab=True)
+	Tourn(board=b, bp=negamax, rp=minmaxAB, n=10)

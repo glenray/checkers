@@ -26,8 +26,8 @@ class player(Engine):
 	'''
 	def __init__(self, board, maxdepth=3, ab=False, randomize=True, maketree=False):
 		super(player, self).__init__( board )
-		self._name = "MinMaxB"
-		self._desc = "A faster MinMaxA"
+		self._name = "NegaMax"
+		self._desc = "MinMaxB with min and max_value methods combined."
 		self.board = board
 		self.maxdepth = maxdepth
 		self.randomize = randomize
@@ -69,16 +69,18 @@ class player(Engine):
 		Find minmax's best move at depth of the search tree
 		@param upper_board obj Board: a Board object
 		@param depth int: the current depth in the search tree
+		@param alpha float:
+		@param beta float:
+		@param mp int: maximizing player. -1 for maximizing; 1 for minimizing
 		@param parentNode obj moveNode: a
 		'''
 		self.setScratchBoard(upper_pos)
 		self.scratchBoard.getLegalMoves()
-		# breakpoint()
-		v = float("-inf")
+		v = float("inf") * mp
 		# Return the position's score at if at maxdepth
 		if depth == self.maxdepth:
-			return self.pieceCount(self.scratchBoard) * -mp, None
-		# if there no legal moves, minmax loses the game in this branch
+			return self.pieceCount(self.scratchBoard), None
+		# if there no legal moves, mp loses the game in this branch
 		elif len(self.scratchBoard.legalMoves) == 0:
 			return 100 * mp, None
 		# iterate legal moves and call the next node level
@@ -100,9 +102,17 @@ class player(Engine):
 					beta,
 					-mp,
 					node)
-				if vtemp > v:
-					best_move = move
-				v = max(v, vtemp)
+				
+				# compare result with the best so far
+				if mp == -1:
+					# maximizing player gets the best move
+					if vtemp > v:
+						best_move = move
+					v = max(v, vtemp)
+				else:
+					# minimizing player just needs the score
+					v = min(v, vtemp)
+					best_move = None
 
 				# pruning
 				if self.ab:
@@ -112,7 +122,7 @@ class player(Engine):
 						alpha = max(alpha, v)
 					else:
 						if v <= alpha:
-							return v, best_move
+							return v, None
 						beta = min(beta, v)
 
 				# make tree
@@ -144,7 +154,7 @@ class player(Engine):
 if __name__ == '__main__':
 	pos = '[FEN "B:W18,26,27,25,11,19:BK15"]'
 	b = Board(pos)
-	p = player(b, maxdepth=2, ab=True, randomize = True)
+	p = player(b, maxdepth=7, ab=True, randomize = False)
 	move = p.selectMove()
 	p.board.makeMove(move)
 	print(b.printBoard())

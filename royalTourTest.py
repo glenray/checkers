@@ -19,19 +19,20 @@ royalTour = [
 ]
 royalTour.reverse()
 
-def run(EngineClass):
+def run(EngineClass, kwargs = None):
     maxdepth = 1
     for position in royalTour:
         b = Board(position)
-        engine = EngineClass(b, maxdepth=maxdepth, ab=True)
+        engine = EngineClass(b, maxdepth=maxdepth, **kwargs)
         move = engine.selectMove()
         print(f'{engine.name} as {"White" if b.onMove == -1 else "Black"} moves {move}\n\tScore: {engine.score}, Nodes: {engine.totalNodes}, NPS: {engine.nps}, Time: {engine.elapsedTime}')
         if engine.elapsedTime > 5*60:
             print("TimeOut")
-            quit()
+            return
         maxdepth+=1
     print("Congratulations. You have solved the Royal Tour Problem!")
 
 if __name__ == '__main__':
-    e = engines.minmaxB
-    run(e)
+    e = engines.negamax
+    params = {'ab' : True, 'randomize' : False}
+    run(e, params)
