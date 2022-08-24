@@ -23,7 +23,7 @@ class debug():
 	"""
 	Display bitboard as human readable board
 	@ isBoard bool if true displays the current position as pieces 
-	b, r, B, R, else just print 1 and 0s. Otherwise, shows the bitWord as 0s and 1s
+	b, r, B, R. Otherwise, shows the bitWord as 0s and 1s
 	"""
 	def printBoard(self, eng, bitWord=None):
 		sq = 0

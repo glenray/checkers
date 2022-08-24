@@ -4,6 +4,7 @@ import operator
 import numpy as np
 from engines.engine import Engine
 from types import SimpleNamespace
+from board2 import Board
 '''
 littleBit: Translate board position to a bit board 
 Does not select any move yet
@@ -11,9 +12,6 @@ Glen Pritchard -- 6/5/2019
 
 A good tutorial about bitboards for checkers:
 https://www.3dkingdoms.com/checkers/bitboards.htm
-
-Note: This was written for board.Board.position 8x8 nexted lists 
-This is not yet compatible with the board2.Board.position 46 element list
 '''
 class player(Engine):
 	def __init__(self, board):
@@ -65,7 +63,7 @@ class player(Engine):
 			return moves[moveNo]
 
 	"""
-	Identify which pieces on move have a valid non-jump move
+	Return a bitword of pieces that have a non-jump move.
 	Square 0 is in the upper left corner.
 	Empty spaces in front of the red pieces are right shifted
 	to check the diagonal square for a red piece
@@ -73,7 +71,6 @@ class player(Engine):
 	"""
 	def getMovers( self ):
 		n = self.getSideVars()		
-
 		movers =  n.forShift( self.emptySqs, 4 ) & n.onMove
 		movers |= n.forShift( self.emptySqs & n.forMsk3, 3 ) & n.onMove
 		movers |= n.forShift( self.emptySqs & n.forMsk5, 5 ) & n.onMove
@@ -83,11 +80,10 @@ class player(Engine):
 			movers |= n.bacShift( self.emptySqs & n.kgMsk5, 5 ) & n.K
 		return movers
 
-	# return pieces that can jump
 	def getJumpers( self ):
+		# Return a bitword of pieces that can jump.
 		n = self.getSideVars()
 		jumpers = 0
-
 		Temp = n.forShift( self.emptySqs, 4 ) & n.enemy
 		jumpers |= ( n.forShift( ( Temp & n.forMsk3 ), 3 ) | n.forShift( ( Temp & n.forMsk5 ), 5 ) ) & n.onMove
 		Temp = (n.forShift( self.emptySqs & n.forMsk3, 3 ) | n.forShift( (self.emptySqs & n.forMsk5), 5)) & n.enemy
@@ -99,9 +95,11 @@ class player(Engine):
 			jumpers |= n.bacShift( Temp, 4 ) & n.K
 		return jumpers
 
-	# set side of board variables
-	# depending on color, sets the direction of forward and backward moves
 	def getSideVars( self ):
+		'''
+		set side of board variables
+		depending on color, sets the direction of forward and backward moves
+		'''
 		s = self.board.onMove
 		d = {
 			'onMove' : self.bp if s == 1 else self.rp,
@@ -114,11 +112,14 @@ class player(Engine):
 			'kgMsk5' : self.MASK_L5 if s == 1 else self.MASK_R5,
 		}
 		d['K'] = d['onMove'] & self.k
-
 		return SimpleNamespace(**d)
 
-	# create bit board representation from board.Board.position 8x8 array
 	def convert2BB( self, position ):
+		'''
+		Set bit board representation from FEN string. 
+		This by setting	player.rb, player.bp, and player.k
+		@param position str: FEN representation of a position
+		'''
 		position = re.findall(r'"([^"]*)"', position)
 		sides = position[0].split(':')
 		self.onMove = 1 if sides[0] == 'B' else -1
@@ -126,7 +127,6 @@ class player(Engine):
 			"white": (sides[1][1:] if sides[1].startswith('W') else sides[1]).split(','),
 			"black": (sides[2][1:] if sides[2].startswith('B') else sides[2]).split(',')
 		}
-		
 		for color in pieces:
 			for sq in pieces[color]:
 				pColor = 1 if color == 'black' else 3
@@ -135,23 +135,17 @@ class player(Engine):
 					pColor = pColor+1
 					sq = sq[1:]
 				self.setSq(pColor, int(sq)-1)
-
-
-				
-		# i = 0
-		# for x, row in enumerate(position):
-		# 	for y, sq in enumerate(row):
-		# 		# only set the dark squares
-		# 		# dark squares are when row and column numbers are not both even or both odd
-		# 		if ( x%2 != y%2 ):
-		# 			self.setSq( sq, i )
-		# 			i+=1
-
-		# Now we can extract other useful information
-		# Empty Squares
+		# Now we can extract other useful information from the bitboards
+		# like the location of empty squares, ie, squares
+		# containing pieces of neither color
 		self.emptySqs = np.uint32(~(self.rp | self.bp ))
 
 	def setSq( self, sq, i ):
+		'''
+		Alter the bp, rp, and k bitboard words at location i
+		@param sq int: piece type: 0 to 4 (Board.BP = 1, etc) 
+		@param i int : the bit location within the bitboard word
+		'''
 		if sq == 0:
 			bpBit = 0
 			rpBit = 0
@@ -160,23 +154,33 @@ class player(Engine):
 			bpBit = 1 if sq < 3 else 0
 			rpBit = 1 if sq > 2 else 0
 			kBit  = 1 if sq % 2 == 0 else 0
-
 		self.bp = self.modifyBit( self.bp, i, bpBit )
 		self.rp = self.modifyBit( self.rp, i, rpBit )
 		self.k = self.modifyBit( self.k, i, kBit )
 
-	"""
-	Set single bit in binary word
-	n binary number
-	p int position to be changed starting at 0
-	b int new value of bit, 1 or 0
-	from https://www.geeksforgeeks.org/modify-bit-given-position/
-	"""
 	def modifyBit( self, n,  p,  b):
+		"""
+		Set single bit in binary word
+		@param n bin
+		@param p int position to be changed starting at 0
+		@param b int new value of bit, 1 or 0
+		from https://www.geeksforgeeks.org/modify-bit-given-position/
+		"""
 		mask = 1 << p 
 		return (n & ~mask) | ((b << p) & mask)
 
-	# Count the number of bits set.
-	# From https://www.geeksforgeeks.org/count-set-bits-in-an-integer/
 	def countSetBits(self, n):
-	    return (bin(n).count('1'))
+		'''
+		Count the number of bits set in a bitboard word
+		@param n bin
+		@return int: number of 1s in a bitboard word
+		From https://www.geeksforgeeks.org/count-set-bits-in-an-integer/
+		'''
+		return (bin(n).count('1'))
+
+if __name__ == '__main__':
+	b = Board()
+	p = player(b)
+	p.convert2BB(b.pos2Fen())
+	for sq in p.S:
+		print(bin(sq)[2:].rjust(32, '0'))
