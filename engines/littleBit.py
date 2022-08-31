@@ -1,6 +1,7 @@
 import random
 import re
 import operator
+import math
 import numpy as np
 from engines.engine import Engine
 from types import SimpleNamespace
@@ -22,37 +23,37 @@ class player(Engine):
 		self.rp = np.uint32(0)
 		self.k =  np.uint32(0)
 		self.emptySqs = np.uint32(0)
-		self.S = []
-		self.S.append(1)
+		self.S = [1]
 		for  i in range(1, 32):
 			self.S.append( np.uint32(self.S[i-1] * 2) )
-		# These left shift and right shift masks work when square 0 is on the top left
 		"""
-		  00  01  02  03
-		04  05  06  07
-		  08  09  10  11
-		12  13  14  15
-		  16  17  18  19
-		20  21  22  23
-		  24  25  26  27
-		28  29  30  31
+		-- These left shift and right shift masks work when square 0 
+		is on the top left.
+		-- All squares work with shift 4. Only half work with 
+		shift 3 and 5.
+		   000   001   002   003
+		004   005   006   007
+		   008   009   010   011
+		012   013   014   015
+		   016   017   018   019
+		020   021   022   023
+		   024   025   026   027
+		028   029   030   031
 		"""
-		self.MASK_L3 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23]
-		self.MASK_L5 = self.S[0] | self.S[1] | self.S[2] | self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26]
-		self.MASK_R3 = self.S[8] | self.S[9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]
-		self.MASK_R5 = self.S[5] | self.S[6] | self.S[7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31]
+		self.MASK_L3 = self.S[ 5] | self.S[ 6] | self.S[ 7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23]
+		self.MASK_L5 = self.S[ 0] | self.S[ 1] | self.S[ 2] | self.S[ 8] | self.S[ 9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26]
+		self.MASK_R3 = self.S[ 8] | self.S[ 9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]
+		self.MASK_R5 = self.S[ 5] | self.S[ 6] | self.S[ 7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31]
 
 	# required by engine base class
 	@property
 	def name(self):
 		return self._name
 	
-
 	@property
 	def desc(self):
 		return self._desc
 	
-
 	def selectMove(self, position, moves):
 		if moves: self.convert2BB(position)
 
@@ -62,16 +63,20 @@ class player(Engine):
 			moveNo = random.randint(0, moveLen-1)
 			return moves[moveNo]
 
-	"""
-	Return a bitword of pieces that have a non-jump move.
-	Square 0 is in the upper left corner.
-	Empty spaces in front of the red pieces are right shifted
-	to check the diagonal square for a red piece
-	Kings need to check in both directions
-	"""
 	def getMovers( self ):
-		n = self.getSideVars()		
+		"""
+		Return a bitword of pieces that have a non-jump move.
+		Square 0 is in the upper left corner.
+		Empty spaces in front of the red pieces are right shifted
+		to check the diagonal square for a red piece
+		Kings need to check in both directions
+		"""
+		n = self.getSideVars()
+		# Shift empty squares by 4. If that square is occupied by a 
+		# man on move, then it's a move. This works for all squares. 
 		movers =  n.forShift( self.emptySqs, 4 ) & n.onMove
+		# Shift empty squares by 3 or 5. This works only for squares
+		# specified in the respective masks
 		movers |= n.forShift( self.emptySqs & n.forMsk3, 3 ) & n.onMove
 		movers |= n.forShift( self.emptySqs & n.forMsk5, 5 ) & n.onMove
 		if n.K:
@@ -160,8 +165,8 @@ class player(Engine):
 
 	def modifyBit( self, n,  p,  b):
 		"""
-		Set single bit in binary word
-		@param n bin
+		Return binary word with single bit changed
+		@param n binary word
 		@param p int position to be changed starting at 0
 		@param b int new value of bit, 1 or 0
 		from https://www.geeksforgeeks.org/modify-bit-given-position/
@@ -178,9 +183,28 @@ class player(Engine):
 		'''
 		return (bin(n).count('1'))
 
+	def printBB(self, bitboard):
+		return bin(bitboard)[2:].rjust(32, '0')
+
+	def getFirstSetBitPostion(self, numb):
+		'''
+		return the position (0 based) of the right most set bit
+		@ return: int: 0 based position of right-most set bit
+
+		From: https://btechgeeks.com/python-program-to-find-position-of-rightmost-set-bit/
+		'''
+		result_pos = math.log2(numb & -numb)
+		return int(result_pos)
+
 if __name__ == '__main__':
 	b = Board()
 	p = player(b)
 	p.convert2BB(b.pos2Fen())
-	for sq in p.S:
-		print(bin(sq)[2:].rjust(32, '0'))
+	movers = p.getMovers()
+	ls = b.FEN2Pos
+	while movers:
+		x = p.getFirstSetBitPostion(movers)
+		# breakpoint()
+		b.getNormalMove(ls[x])
+		movers = p.modifyBit(movers, x, 0)
+	print(b.legalMoves2FEN(b.legalMoves))
