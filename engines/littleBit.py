@@ -6,6 +6,7 @@ import numpy as np
 from engines.engine import Engine
 from types import SimpleNamespace
 from board2 import Board
+from positions import positions
 '''
 littleBit: Translate board position to a bit board 
 Does not select any move yet
@@ -29,8 +30,9 @@ class player(Engine):
 		"""
 		-- These left shift and right shift masks work when square 0 
 		is on the top left.
-		-- All squares work with shift 4. Only half work with 
-		shift 3 and 5.
+		-- All squares work with shift 4. So, we don't need a mask for that.
+		-- rows 1, 3, and 5 need shift 3 
+		-- rows 0, 2, 4, 6 need shift 5.
 		   000   001   002   003
 		004   005   006   007
 		   008   009   010   011
@@ -63,7 +65,7 @@ class player(Engine):
 			moveNo = random.randint(0, moveLen-1)
 			return moves[moveNo]
 
-	def getMovers( self ):
+	def getMovers(self):
 		"""
 		Return a bitword of pieces that have a non-jump move.
 		Square 0 is in the upper left corner.
@@ -85,7 +87,7 @@ class player(Engine):
 			movers |= n.bacShift( self.emptySqs & n.kgMsk5, 5 ) & n.K
 		return movers
 
-	def getJumpers( self ):
+	def getJumpers(self):
 		# Return a bitword of pieces that can jump.
 		n = self.getSideVars()
 		jumpers = 0
@@ -100,26 +102,28 @@ class player(Engine):
 			jumpers |= n.bacShift( Temp, 4 ) & n.K
 		return jumpers
 
-	def getSideVars( self ):
+	def getSideVars(self, s=None):
 		'''
-		set side of board variables
-		depending on color, sets the direction of forward and backward moves
+		Return side-to-move dependent variables needed to calculate
+		movers and jumpers.
+		@ param int: 1 or -1 for side to move
+		@ return obj: SimpleNamespace object containing the variables
 		'''
-		s = self.board.onMove
+		s = self.board.onMove if s == None else s
 		d = {
-			'onMove' : self.bp if s == 1 else self.rp,
-			'enemy' : self.rp if s == 1 else self.bp,
-			'forShift' : operator.rshift if s == 1 else operator.lshift,
-			'bacShift' : operator.lshift if s == 1 else operator.rshift,
-			'forMsk3' : self.MASK_R3 if s == 1 else self.MASK_L3,
-			'forMsk5' : self.MASK_R5 if s == 1 else self.MASK_L5,
-			'kgMsk3' : self.MASK_L3 if s == 1 else self.MASK_R3,
-			'kgMsk5' : self.MASK_L5 if s == 1 else self.MASK_R5,
+			'onMove' 	: self.bp if s == 1 else self.rp,
+			'enemy' 	: self.rp if s == 1 else self.bp,
+			'forShift' 	: operator.rshift if s == 1 else operator.lshift,
+			'bacShift' 	: operator.lshift if s == 1 else operator.rshift,
+			'forMsk3' 	: self.MASK_R3 if s == 1 else self.MASK_L3,
+			'forMsk5' 	: self.MASK_R5 if s == 1 else self.MASK_L5,
+			'kgMsk3' 	: self.MASK_L3 if s == 1 else self.MASK_R3,
+			'kgMsk5' 	: self.MASK_L5 if s == 1 else self.MASK_R5,
 		}
 		d['K'] = d['onMove'] & self.k
 		return SimpleNamespace(**d)
 
-	def convert2BB( self, position ):
+	def convert2BB(self, position):
 		'''
 		Set bit board representation from FEN string. 
 		This by setting	player.rb, player.bp, and player.k
@@ -145,7 +149,7 @@ class player(Engine):
 		# containing pieces of neither color
 		self.emptySqs = np.uint32(~(self.rp | self.bp ))
 
-	def setSq( self, sq, i ):
+	def setSq(self, sq, i):
 		'''
 		Alter the bp, rp, and k bitboard words at location i
 		@param sq int: piece type: 0 to 4 (Board.BP = 1, etc) 
@@ -163,7 +167,7 @@ class player(Engine):
 		self.rp = self.modifyBit( self.rp, i, rpBit )
 		self.k = self.modifyBit( self.k, i, kBit )
 
-	def modifyBit( self, n,  p,  b):
+	def modifyBit(self, n,  p,  b):
 		"""
 		Return binary word with single bit changed
 		@param n binary word
@@ -177,7 +181,7 @@ class player(Engine):
 	def countSetBits(self, n):
 		'''
 		Count the number of bits set in a bitboard word
-		@param n bin
+		@param n bin: a 32 bit binary number (bitboard) 
 		@return int: number of 1s in a bitboard word
 		From https://www.geeksforgeeks.org/count-set-bits-in-an-integer/
 		'''
@@ -186,25 +190,48 @@ class player(Engine):
 	def printBB(self, bitboard):
 		return bin(bitboard)[2:].rjust(32, '0')
 
-	def getFirstSetBitPostion(self, numb):
+	def getFirstSetBitPosition(self, numb):
 		'''
 		return the position (0 based) of the right most set bit
-		@ return: int: 0 based position of right-most set bit
-
+		@ param numb: bin: a 32 bit binary number (bitboard)  
+		@ return: int: 0 based position of right-most set bit. 
+		Conveniently, this +1 is the FEN square number.
 		From: https://btechgeeks.com/python-program-to-find-position-of-rightmost-set-bit/
 		'''
 		result_pos = math.log2(numb & -numb)
 		return int(result_pos)
 
+	def getNormalMoves(self, movers):
+		'''
+		Get non-jump moves from a bit board of movers
+		@ param movers: bin: bit board of non jump movers
+		@ return list: list of tuples (x, y), where x is the starting
+		positional bit of the piece and y is the landing square.
+		'''
+		n = self.getSideVars()
+		moves = []
+		side2move = self.board.onMove
+		directions = (
+			(self.emptySqs, 4),
+			(self.emptySqs & n.forMsk3, 3),
+			(self.emptySqs & n.forMsk5, 5)
+		)
+		while movers:
+			x = self.getFirstSetBitPosition(movers)
+			sq = self.S[x]
+			for d in directions:
+				if n.forShift( d[0], d[1] ) & sq:
+					moves.append((x, x+(d[1]*side2move)))
+			movers = self.modifyBit(movers, x, 0)
+		return moves
+
 if __name__ == '__main__':
+	pos = positions['royalTour']
 	b = Board()
+	# b.onMove = 1
 	p = player(b)
 	p.convert2BB(b.pos2Fen())
 	movers = p.getMovers()
 	ls = b.FEN2Pos
-	while movers:
-		x = p.getFirstSetBitPostion(movers)
-		# breakpoint()
-		b.getNormalMove(ls[x])
-		movers = p.modifyBit(movers, x, 0)
-	print(b.legalMoves2FEN(b.legalMoves))
+	print(b.printBoard())
+	print(p.getNormalMoves(movers))
