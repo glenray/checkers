@@ -4,4 +4,5 @@ from engines.minmaxA import player as minmaxA
 from engines.minmaxB import player as minmaxB
 from engines.snap import player as snap
 from engines.littleBit import player as littlebit
+from engines.littleBitA import player as littlebitA
 from engines.moveNode import moveNode
