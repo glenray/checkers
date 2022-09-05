@@ -32,8 +32,9 @@ class player(Engine):
 		-- These left shift and right shift masks work when square 0 
 		is on the top left.
 		-- All squares work with shift 4. So, we don't need a mask for that.
-		-- rows 1, 3, and 5 need shift 3 
-		-- rows 0, 2, 4, 6 need shift 5.
+		-- Outer edge squares (3, 4, 11, 12 ...) can only shift 4.
+		-- Other squares in rows 1, 3, 5, and 7 can shift 3 
+		-- Other squares in rows 0, 2, 4, and 6 can shift 5.
 		   000   001   002   003
 		004   005   006   007
 		   008   009   010   011
