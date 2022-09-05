@@ -81,11 +81,12 @@ class Board:
 		del self.legalMoves[:]
 		self.isJump = False
 		side = (self.BP,self.BK) if self.onMove == 1 else (self.WP,self.WK)
-		for i, sq in enumerate(self.position):
-			if sq not in (side): continue
-			self.getJumpMove(i)
+		# look at each valid square
+		for sq in self.FEN2Pos:
+			if self.position[sq] not in (side): continue
+			self.getJumpMove(sq)
 			if self.isJump == False:
-				self.getNormalMove(i)
+				self.getNormalMove(sq)
 
 	def legalMoves2FEN(self, lists = None):
 		# convert every element in list from internal board array to FEN position
