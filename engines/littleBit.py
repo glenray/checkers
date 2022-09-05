@@ -25,6 +25,7 @@ class player(Engine):
 		self.k =  np.uint32(0)
 		self.emptySqs = np.uint32(0)
 		self.S = [1]
+		self.sideVars = None
 		for  i in range(1, 32):
 			self.S.append( np.uint32(self.S[i-1] * 2) )
 		"""
@@ -46,6 +47,7 @@ class player(Engine):
 		self.MASK_L5 = self.S[ 0] | self.S[ 1] | self.S[ 2] | self.S[ 8] | self.S[ 9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24]  | self.S[25]  | self.S[26]
 		self.MASK_R3 = self.S[ 8] | self.S[ 9] | self.S[10] | self.S[16] | self.S[17] | self.S[18] | self.S[24] | self.S[25] | self.S[26]
 		self.MASK_R5 = self.S[ 5] | self.S[ 6] | self.S[ 7] | self.S[13] | self.S[14] | self.S[15] | self.S[21] | self.S[22] | self.S[23] | self.S[29]  | self.S[30]  | self.S[31]
+
 
 	# required by engine base class
 	@property
@@ -102,6 +104,25 @@ class player(Engine):
 			jumpers |= n.bacShift( Temp, 4 ) & n.K
 		return jumpers
 
+	def initSideVars (self):
+		black = {
+			'forShift' 	: operator.rshift,
+			'bacShift' 	: operator.lshift,
+			'forMsk3' 	: self.MASK_R3,
+			'forMsk5' 	: self.MASK_R5,
+			'kgMsk3' 	: self.MASK_L3,
+			'kgMsk5' 	: self.MASK_L5,
+		}
+		white = {
+			'forShift' 	: operator.lshift,
+			'bacShift' 	: operator.rshift,
+			'forMsk3' 	: self.MASK_L3,
+			'forMsk5' 	: self.MASK_L5,
+			'kgMsk3' 	: self.MASK_R3,
+			'kgMsk5' 	: self.MASK_R5,	
+		}
+		self.sideVars = [SimpleNamespace(**white), SimpleNamespace(**black)]
+
 	def getSideVars(self, s=None):
 		'''
 		Return side-to-move dependent variables needed to calculate
@@ -109,19 +130,26 @@ class player(Engine):
 		@ param int: 1 or -1 for side to move
 		@ return obj: SimpleNamespace object containing the variables
 		'''
+		if self.sideVars == None: self.initSideVars()
 		s = self.board.onMove if s == None else s
-		d = {
-			'onMove' 	: self.bp if s == 1 else self.rp,
-			'enemy' 	: self.rp if s == 1 else self.bp,
-			'forShift' 	: operator.rshift if s == 1 else operator.lshift,
-			'bacShift' 	: operator.lshift if s == 1 else operator.rshift,
-			'forMsk3' 	: self.MASK_R3 if s == 1 else self.MASK_L3,
-			'forMsk5' 	: self.MASK_R5 if s == 1 else self.MASK_L5,
-			'kgMsk3' 	: self.MASK_L3 if s == 1 else self.MASK_R3,
-			'kgMsk5' 	: self.MASK_L5 if s == 1 else self.MASK_R5,
-		}
-		d['K'] = d['onMove'] & self.k
-		return SimpleNamespace(**d)
+		retVal = self.sideVars[1] if s == 1 else self.sideVars[0]
+		retVal.onMove = self.bp if s == 1 else self.rp
+		retVal.enemy = self.rp if s == 1 else self.bp
+		retVal.K = retVal.onMove & self.k
+		return retVal
+
+		# d = {
+		# 	'onMove' 	: self.bp if s == 1 else self.rp,
+		# 	'enemy' 	: self.rp if s == 1 else self.bp,
+		# 	'forShift' 	: operator.rshift if s == 1 else operator.lshift,
+		# 	'bacShift' 	: operator.lshift if s == 1 else operator.rshift,
+		# 	'forMsk3' 	: self.MASK_R3 if s == 1 else self.MASK_L3,
+		# 	'forMsk5' 	: self.MASK_R5 if s == 1 else self.MASK_L5,
+		# 	'kgMsk3' 	: self.MASK_L3 if s == 1 else self.MASK_R3,
+		# 	'kgMsk5' 	: self.MASK_L5 if s == 1 else self.MASK_R5,
+		# }
+		# d['K'] = d['onMove'] & self.k
+		# return SimpleNamespace(**d)
 
 	def convert2BB(self, position):
 		'''
