@@ -252,13 +252,41 @@ class player(Engine):
 			movers = self.modifyBit(movers, x, 0)
 		return moves
 
+	def printBoard(self, bitWord=None):
+		"""
+		Display bitboard as human readable board
+		@ param bitWord: int or None: if None, the current position 
+		is displayed as pieces (b, r, B, R). 
+		Otherwise, the bitWord is displayed as 0s and 1s
+		"""
+		sq = 0
+		spacer = "  "
+		output = ""
+		for row in range(8):
+			s = spacer 	if row%2 == 0 else ""
+			for col in range(4):
+				mask = 1 << sq
+				if( bitWord == None ):
+					if( self.bp & mask > 0 ): s += 'b'
+					elif( self.rp & mask > 0 ):	s += 'r'
+					else: s += "-"
+					if( self.k & mask > 0 ): s = s.upper()
+				else:
+					if( bitWord & mask>0 ): s += '1'
+					else: s +='0'
+				sq += 1
+				output += s+spacer
+				s=""
+			output += "\n"
+		return output
+
 if __name__ == '__main__':
-	pos = positions['royalTour']
-	b = Board()
-	# b.onMove = 1
+	pos = positions['multiJumpA']
+	b = Board(pos)
 	p = player(b)
 	p.convert2BB(b.pos2Fen())
 	movers = p.getMovers()
-	ls = b.FEN2Pos
-	print(b.printBoard())
-	print(p.getNormalMoves(movers))
+	jumpers = p.getJumpers()
+	print(p.printBoard())
+	print(p.printBoard(movers))
+	print(p.printBoard(jumpers))
