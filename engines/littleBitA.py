@@ -134,14 +134,12 @@ class player(Engine):
 
 	def convPos2BB(self):
 		'''
-		Convert board2.Board.position and .onMove to bitboards
-
-		@return list: 
-		list of 4 ints consisting of: 
+		Convert board2.Board FEN string to bitboards
+		@return list: a list of 4 ints consisting of: 
 		0: bp (bit board of black pieces), 
 		1: rp (bitboard of red pieces), 
 		2: kings (bitboard of kings),
-		3: on move (1 for black, -1 for white)
+		3: side on move (1 for black, -1 for white)
 
 		'''
 		position  = [0, 0, 0, 0]
@@ -254,6 +252,9 @@ class player(Engine):
 						moves.append((x, x+(kd[1]*-side2move)))
 			movers = self.modifyBit(movers, x, 0)
 		return moves
+
+	def getJumpMoves(self, position, jumpers, moves=[]):
+		pass
 
 	def printBoard(self, data=None):
 		"""
