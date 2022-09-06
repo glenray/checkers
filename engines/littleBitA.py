@@ -243,12 +243,22 @@ class player(Engine):
 			(self.emptySqs & n.forMsk3, 3),
 			(self.emptySqs & n.forMsk5, 5)
 		)
+		king_directions = (
+			(self.emptySqs, 4),
+			(self.emptySqs & n.kgMsk3, 3),
+			(self.emptySqs & n.kgMsk5, 5)
+		)
 		while movers:
 			x = self.getFirstSetBitPosition(movers)
 			sq = self.S[x]
 			for d in directions:
 				if n.forShift( d[0], d[1] ) & sq:
 					moves.append((x, x+(d[1]*side2move)))
+			# kings look for backward moves
+			if sq & self.k:
+				for kd in king_directions:
+					if n.bacShift(kd[0], kd[1]) & sq:
+						moves.append((x, x+(kd[1]*-side2move)))
 			movers = self.modifyBit(movers, x, 0)
 		return moves
 
@@ -258,6 +268,7 @@ class player(Engine):
 		@ param bitWord: int or None: if None, the current position 
 		is displayed as pieces (b, r, B, R). 
 		Otherwise, the bitWord is displayed as 0s and 1s
+		@ return str: a human readable checker board
 		"""
 		sq = 0
 		spacer = "  "
@@ -281,12 +292,13 @@ class player(Engine):
 		return output
 
 if __name__ == '__main__':
-	pos = positions['multiJumpA']
+	pos = positions['one']
 	b = Board(pos)
+	# b.onMove *= -1
 	p = player(b)
 	p.convert2BB(b.pos2Fen())
 	movers = p.getMovers()
 	jumpers = p.getJumpers()
 	print(p.printBoard())
-	print(p.printBoard(movers))
-	print(p.printBoard(jumpers))
+	print(p.getNormalMoves(movers))
+
