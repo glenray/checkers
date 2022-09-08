@@ -37,6 +37,7 @@ class player(Engine):
 		|031   032   033   034   | 035
 		--------------------------
 		"""
+	
 	# required by engine base class
 	@property
 	def name(self):
@@ -65,13 +66,15 @@ class player(Engine):
 		enemy = position[1] if position[3] == 1 else position[0]
 		empty = self.emptySqs(position)
 		kings = position[2]
+		# black to move
 		if position[3] == 1:
+			# line up empty squares and black squares
 			movers = (empty >> 4 & friend) | (empty >> 5 & friend)
-			if kings:
+			if kings & friend:
 				movers |= (empty << 4 & kings) | (empty << 5 & kings)
 		else:
 			movers = (empty << 4 & friend) | (empty << 5 & friend)
-			if kings:
+			if kings & friend:
 				movers = (empty >> 4 & kings) | (empty >> 5 & kings)
 		return movers
 
@@ -84,17 +87,30 @@ class player(Engine):
 		jumpers = 0
 		friend = position[0] if position[3] == 1 else position[1]
 		enemy = position[1] if position[3] == 1 else position[0]
+		kings = position[2]
 		empty = self.emptySqs(position)
+		# Black to move
 		if position[3] == 1:
 			temp = empty >> 4 & enemy 
 			jumpers |= temp >> 4 & friend 
 			temp = empty >> 5 & enemy 
 			jumpers |= (temp >> 5 & friend)
+			if kings:
+				temp = empty << 4 & enemy 
+				jumpers |= temp << 4 & kings 
+				temp = empty << 5 & enemy 
+				jumpers |= temp << 5 & kings
+		# White to move
 		else:
 			temp = empty << 4 & enemy 
 			jumpers |= temp << 4 & friend 
 			temp = empty << 5 & enemy 
 			jumpers |= (temp << 5 & friend)
+			if kings:
+				temp = empty >> 4 & enemy 
+				jumpers |= temp >> 4 & friend 
+				temp = empty >> 5 & enemy 
+				jumpers |= (temp >> 5 & friend)
 		return jumpers
 
 	def initSideVars (self):
@@ -211,8 +227,36 @@ class player(Engine):
 		@ return list: list of tuples (x, y), where x is the starting
 		positional bit of the piece and y is the landing square.
 		'''
-		pass
-		# n = self.getSideVars(position)
+		moves = []
+		empty = self.emptySqs(position)
+		kings = position[2]
+		while movers:
+			x = self.getFirstSetBitPosition(movers)
+			val = 2 ** x
+			if position[3] == 1:
+				if val & empty >> 4:
+					moves.append([x, x+4])
+				if val & empty >> 5:
+					moves.append([x, x+5])
+				if val & kings & empty << 4:
+					moves.append([x, x-4])
+				if val & kings & empty << 5:
+					moves.append([x, x-5])
+
+			else:
+				# breakpoint()
+				if val & empty << 4:
+					moves.append([x, x-4])
+				if val & empty << 5:
+					moves.append([x, x-5])
+
+				if val & kings & empty >> 4:
+					moves.append([x, x+4])
+				if val & kings & empty >> 5:
+					moves.append([x, x+5])
+			# is this the fastest way?
+			movers -= val
+		return moves
 
 	def getJumpMoves(self, position, jumpers):
 		pass
@@ -257,12 +301,16 @@ if __name__ == '__main__':
 	pos = positions['multiJumpA']
 	# pos = positions['jump']
 	# pos = positions['kingJump']
+	# pos = '[FEN "B:W29,8:B4"]'
 	b = Board(pos)
 	# b.onMove = -1
 	p = player(b)
 	position = p.convPos2BB()
 	movers = p.getMovers(position)
 	jumpers = p.getJumpers(position)
+	moves = p.getNormalMoves(position, movers)
+	print(moves)
+
 	print(b.printBoard())
 	print(p.printBoard(movers), '\n')
 	print(p.printBoard(jumpers), '\n')
