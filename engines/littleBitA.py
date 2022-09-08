@@ -1,18 +1,15 @@
+import math
+import operator
 import random
 import re
-import operator
-import math
-from engines.engine import Engine
 from types import SimpleNamespace
+from engines.engine import Engine
 from board2 import Board
 from positions import positions
 '''
-littleBit: Translate board position to a bit board 
-Does not select any move yet
-Glen Pritchard -- 6/5/2019
-
-A good tutorial about bitboards for checkers:
-https://www.3dkingdoms.com/checkers/bitboards.htm
+littleBitA: Modified littleBit that does not use numpy
+Translate board position to a bit board 
+Glen Pritchard -- 9/5/2022
 '''
 class player(Engine):
 	def __init__(self, board):
@@ -83,19 +80,25 @@ class player(Engine):
 		return movers
 
 	def getJumpers(self, position):
-		# Return a bitword of pieces that can jump.
+		'''
+		Return a bitboard of pieces that can jump.
+		@param position: list: position to look for jumpers [bp, rp, k, onMove]
+		@return int: bitboard of jumpers
+		'''
 		n = self.getSideVars(position)
 		empty = ~(position[0] | position[1])
 		jumpers = 0
-		Temp = n.forShift( empty, 4 ) & n.enemy
-		jumpers |= ( n.forShift( ( Temp & n.forMsk3 ), 3 ) | n.forShift( ( Temp & n.forMsk5 ), 5 ) ) & n.onMove
-		Temp = (n.forShift( empty & n.forMsk3, 3 ) | n.forShift( (empty & n.forMsk5), 5)) & n.enemy
-		jumpers |= n.forShift( Temp, 4 ) & n.onMove
+		# line up empty squares with the enemy
+		Temp = n.forShift(empty, 4) & n.enemy
+		# line up above with on move pieces
+		jumpers |= (n.forShift((Temp & n.forMsk3), 3) | n.forShift((Temp & n.forMsk5), 5)) & n.onMove
+		Temp = (n.forShift(empty & n.forMsk3, 3) | n.forShift((empty & n.forMsk5), 5)) & n.enemy
+		jumpers |= n.forShift(Temp, 4) & n.onMove
 		if n.K:
-			Temp = n.bacShift( empty, 4 ) & n.enemy
-			jumpers |= (n.bacShift( ( Temp & n.kgMsk3 ), 3 ) | n.bacShift( ( Temp & n.kgMsk5 ), 5 )) & n.K
-			Temp = ( n.bacShift( empty & n.kgMsk3, 3 ) | n.bacShift( (empty & n.kgMsk5), 5) ) & n.enemy
-			jumpers |= n.bacShift( Temp, 4 ) & n.K
+			Temp = n.bacShift(empty, 4) & n.enemy
+			jumpers |= (n.bacShift((Temp & n.kgMsk3), 3) | n.bacShift(( Temp & n.kgMsk5), 5)) & n.K
+			Temp = (n.bacShift(empty & n.kgMsk3, 3) | n.bacShift((empty & n.kgMsk5), 5)) & n.enemy
+			jumpers |= n.bacShift(Temp, 4) & n.K
 		return jumpers
 
 	def initSideVars (self):
@@ -253,8 +256,42 @@ class player(Engine):
 			movers = self.modifyBit(movers, x, 0)
 		return moves
 
-	def getJumpMoves(self, position, jumpers, moves=[]):
-		pass
+	def getJumpMoves(self, position, jumpers):
+		moves = []
+		sideVars = self.getSideVars(position)
+		while jumpers:
+			x=self.getFirstSetBitPosition(jumpers)
+			jumpers = self.modifyBit(jumpers, x, 0)
+			moves = moves + self.jumpersRecurse(x, moves, position, sideVars)
+		return moves
+	
+	def jumpersRecurse(self, js, moves, position, sideVars):
+		empty = ~(position[0] | position[1])
+		jumperSq = self.S[js]
+		mip = []
+		pnt = position[3]
+		Temp = sideVars.forShift(empty, 4) & sideVars.enemy
+		dirs = (
+			(sideVars.forShift(Temp, 3) & jumperSq, 7*pnt),
+			(sideVars.forShift(Temp, 5) & jumperSq, 9*pnt),
+			(sideVars.forShift(Temp, 4) & jumperSq, 9*pnt)
+		)
+		Temp = sideVars.bacShift(empty, 4) &sideVars.enemy
+		kdirs = (
+			(sideVars.bacShift(Temp, 3) & jumperSq, -7*pnt),
+			(sideVars.bacShift(Temp, 5) & jumperSq, -9*pnt),
+			(sideVars.bacShift(Temp, 4) & jumperSq, -7*pnt),
+		)
+		for d in dirs:
+			if d[0]:
+				mip.append([js, js+d[1]])
+		# for kings
+		if jumperSq & position[2]:
+			for d in kdirs:
+				if d[0]:
+					mip.append([js, js+d[1]])
+		breakpoint()
+
 
 	def printBoard(self, data=None):
 		"""
@@ -288,10 +325,11 @@ class player(Engine):
 
 if __name__ == '__main__':
 	pos = positions['multiJumpA']
+	pos = positions['jump']
+	pos = positions['kingJump']
 	b = Board(pos)
+	b.onMove *= -1
 	p = player(b)
 	position = p.convPos2BB()
-	movers = p.getMovers(position)
 	jumpers = p.getJumpers(position)
-	print(p.getNormalMoves(position, movers))
-	print(p.printBoard(jumpers))
+	p.getJumpMoves(position, jumpers)
