@@ -248,65 +248,64 @@ class player(Engine):
 		kings = position[2]
 		newMoves = None
 		# enemies in front left line up with landing squares
-		# also need (empty>>5 & enemy)
-		temp = (empty >> 4 & enemy)
-		# if those enemies are next to our jumper, than it's a jump
-		if temp >> 4 & jumperBB:
-			newMoves = [jumper, jumper + 8] if jumps==[] else jumps+[jumper+8]
-			newFriend = friend - (jumperBB) + (2 ** (jumper+8))
-			newEnemy = enemy - (2 ** (jumper+4)) 
-			newKings = kings
-			# If the jumper is a king, subtract it from where it was and add it to where it landed
-			if jumperBB & kings:
-				newKings = newKings-jumperBB+(2**(jumper+8))
-			# if the taken piece is a king, subtract it from where it was
-			if kings & (2 ** (jumper+4)):
-				newKings = newKings - (2**(jumper+4))
-			newPosition = [newFriend, newEnemy, newKings, position[3]]
-			self.jumpersBlkRecurse(jumper+8, 2**(jumper+8), newPosition, newMoves)
-
-		if temp >> 5 & jumperBB:
-			newMoves = [jumper, jumper + 10] if jumps==[] else jumps+[jumper+10]
-			newFriend = friend - (jumperBB) + (2 ** (jumper+10))
-			newEnemy = enemy - (2 ** (jumper+5)) 
-			newKings = kings
-			# If the jumper is a king, subtract it from where it was and add it to where it landed
-			if jumperBB & kings:
-				newKings = newKings-jumperBB+(2**(jumper+10))
-			# if the taken piece is a king, subtract it from where it was
-			if kings & (2 ** (jumper+5)):
-				newKings = newKings - (2**(jumper+5))
-			newPosition = [newFriend, newEnemy, newKings, position[3]]
-			self.jumpersBlkRecurse(jumper+10, 2**(jumper+10), newPosition, newMoves)
-
-		if jumperBB & kings:
-			if temp << 4 & jumperBB:
-				newMoves = [jumper, jumper - 8] if jumps==[] else jumps+[jumper-8]
-				newFriend = friend - (jumperBB) + (2 ** (jumper-8))
-				newEnemy = enemy - (2 ** (jumper-4)) 
+		temps = ((empty >> 4 & enemy), (empty >> 5 & enemy))
+		for temp in temps:
+			if temp >> 4 & jumperBB:
+				newMoves = [jumper, jumper + 8] if jumps==[] else jumps+[jumper+8]
+				newFriend = friend - (jumperBB) + (2 ** (jumper+8))
+				newEnemy = enemy - (2 ** (jumper+4)) 
 				newKings = kings
 				# If the jumper is a king, subtract it from where it was and add it to where it landed
 				if jumperBB & kings:
-					newKings = newKings-jumperBB+(2**(jumper-8))
+					newKings = newKings-jumperBB+(2**(jumper+8))
 				# if the taken piece is a king, subtract it from where it was
-				if kings & (2 ** (jumper-4)):
-					newKings = newKings - (2**(jumper-4))
+				if kings & (2 ** (jumper+4)):
+					newKings = newKings - (2**(jumper+4))
 				newPosition = [newFriend, newEnemy, newKings, position[3]]
-				self.jumpersBlkRecurse(jumper-8, 2**(jumper-8), newPosition, newMoves)
+				self.jumpersBlkRecurse(jumper+8, 2**(jumper+8), newPosition, newMoves)
 
-			if temp << 5 & jumperBB:
-				newMoves = [jumper, jumper - 10] if jumps==[] else jumps+[jumper-10]
-				newFriend = friend - (jumperBB) + (2 ** (jumper-10))
-				newEnemy = enemy - (2 ** (jumper-5)) 
+			if temp >> 5 & jumperBB:
+				newMoves = [jumper, jumper + 10] if jumps==[] else jumps+[jumper+10]
+				newFriend = friend - (jumperBB) + (2 ** (jumper+10))
+				newEnemy = enemy - (2 ** (jumper+5)) 
 				newKings = kings
 				# If the jumper is a king, subtract it from where it was and add it to where it landed
 				if jumperBB & kings:
-					newKings = newKings-jumperBB+(2**(jumper-10))
+					newKings = newKings-jumperBB+(2**(jumper+10))
 				# if the taken piece is a king, subtract it from where it was
-				if kings & (2 ** (jumper-5)):
-					newKings = newKings - (2**(jumper-5))
+				if kings & (2 ** (jumper+5)):
+					newKings = newKings - (2**(jumper+5))
 				newPosition = [newFriend, newEnemy, newKings, position[3]]
-				self.jumpersBlkRecurse(jumper-10, 2**(jumper-10), newPosition, newMoves)
+				self.jumpersBlkRecurse(jumper+10, 2**(jumper+10), newPosition, newMoves)
+
+			if jumperBB & kings:
+				if temp << 4 & jumperBB:
+					newMoves = [jumper, jumper - 8] if jumps==[] else jumps+[jumper-8]
+					newFriend = friend - (jumperBB) + (2 ** (jumper-8))
+					newEnemy = enemy - (2 ** (jumper-4)) 
+					newKings = kings
+					# If the jumper is a king, subtract it from where it was and add it to where it landed
+					if jumperBB & kings:
+						newKings = newKings-jumperBB+(2**(jumper-8))
+					# if the taken piece is a king, subtract it from where it was
+					if kings & (2 ** (jumper-4)):
+						newKings = newKings - (2**(jumper-4))
+					newPosition = [newFriend, newEnemy, newKings, position[3]]
+					self.jumpersBlkRecurse(jumper-8, 2**(jumper-8), newPosition, newMoves)
+
+				if temp << 5 & jumperBB:
+					newMoves = [jumper, jumper - 10] if jumps==[] else jumps+[jumper-10]
+					newFriend = friend - (jumperBB) + (2 ** (jumper-10))
+					newEnemy = enemy - (2 ** (jumper-5)) 
+					newKings = kings
+					# If the jumper is a king, subtract it from where it was and add it to where it landed
+					if jumperBB & kings:
+						newKings = newKings-jumperBB+(2**(jumper-10))
+					# if the taken piece is a king, subtract it from where it was
+					if kings & (2 ** (jumper-5)):
+						newKings = newKings - (2**(jumper-5))
+					newPosition = [newFriend, newEnemy, newKings, position[3]]
+					self.jumpersBlkRecurse(jumper-10, 2**(jumper-10), newPosition, newMoves)
 
 		if newMoves == None and jumps:
 			self.jumps.append(jumps)
@@ -357,8 +356,4 @@ if __name__ == '__main__':
 	jumpers = p.getJumpers(position)
 	moves = p.getNormalMoves(position, movers)
 	jumps = p.getJumpMoves(position, jumpers)
-
 	print(jumps)
-	
-	# print(p.printBoard(movers), '\n')
-	# print(p.printBoard(jumpers), '\n')
