@@ -246,68 +246,40 @@ class player(Engine):
 		enemy = position[1]
 		friend = position[0]
 		kings = position[2]
+		onMove = position[3]
+		menShift = operator.rshift if onMove == 1 else operator.lshift
+		kingShift = operator.lshift if onMove == 1 else operator.rshift 
 		newMoves = None
 		# enemies in front left line up with landing squares
-		temps = ((empty >> 4 & enemy), (empty >> 5 & enemy))
-		for temp in temps:
-			if temp >> 4 & jumperBB:
-				newMoves = [jumper, jumper + 8] if jumps==[] else jumps+[jumper+8]
-				newFriend = friend - (jumperBB) + (2 ** (jumper+8))
-				newEnemy = enemy - (2 ** (jumper+4)) 
+		men_vars = [
+			((menShift((menShift(empty, 4) & enemy), 4) & jumperBB), 4*onMove), 
+			((menShift((menShift(empty, 5) & enemy), 5) & jumperBB), 5*onMove),
+		]
+		king_vars = [
+			((kingShift((kingShift(empty, 4) & enemy), 4) & jumperBB), -4*onMove), 
+			((kingShift((kingShift(empty, 5) & enemy), 5) & jumperBB), -5*onMove),
+		]
+		variations = men_vars + king_vars if jumperBB & kings else men_vars
+		for var in variations:
+			if var[0]:
+				shiftVal = var[1]
+				newMoves = [jumper, jumper + (shiftVal*2)] if jumps==[] else jumps+[jumper+(shiftVal*2)]
+				newFriend = friend - (jumperBB) + (2 ** (jumper+(shiftVal*2)))
+				newEnemy = enemy - (2 ** (jumper+shiftVal)) 
 				newKings = kings
 				# If the jumper is a king, subtract it from where it was and add it to where it landed
 				if jumperBB & kings:
-					newKings = newKings-jumperBB+(2**(jumper+8))
+					newKings = newKings-jumperBB+(2**(jumper+(shiftVal*2)))
 				# if the taken piece is a king, subtract it from where it was
-				if kings & (2 ** (jumper+4)):
-					newKings = newKings - (2**(jumper+4))
+				if kings & (2 ** (jumper+shiftVal)):
+					newKings = newKings - (2**(jumper+shiftVal))
 				newPosition = [newFriend, newEnemy, newKings, position[3]]
-				self.jumpersBlkRecurse(jumper+8, 2**(jumper+8), newPosition, newMoves)
-
-			if temp >> 5 & jumperBB:
-				newMoves = [jumper, jumper + 10] if jumps==[] else jumps+[jumper+10]
-				newFriend = friend - (jumperBB) + (2 ** (jumper+10))
-				newEnemy = enemy - (2 ** (jumper+5)) 
-				newKings = kings
-				# If the jumper is a king, subtract it from where it was and add it to where it landed
-				if jumperBB & kings:
-					newKings = newKings-jumperBB+(2**(jumper+10))
-				# if the taken piece is a king, subtract it from where it was
-				if kings & (2 ** (jumper+5)):
-					newKings = newKings - (2**(jumper+5))
-				newPosition = [newFriend, newEnemy, newKings, position[3]]
-				self.jumpersBlkRecurse(jumper+10, 2**(jumper+10), newPosition, newMoves)
-
-			if jumperBB & kings:
-				if temp << 4 & jumperBB:
-					newMoves = [jumper, jumper - 8] if jumps==[] else jumps+[jumper-8]
-					newFriend = friend - (jumperBB) + (2 ** (jumper-8))
-					newEnemy = enemy - (2 ** (jumper-4)) 
-					newKings = kings
-					# If the jumper is a king, subtract it from where it was and add it to where it landed
-					if jumperBB & kings:
-						newKings = newKings-jumperBB+(2**(jumper-8))
-					# if the taken piece is a king, subtract it from where it was
-					if kings & (2 ** (jumper-4)):
-						newKings = newKings - (2**(jumper-4))
-					newPosition = [newFriend, newEnemy, newKings, position[3]]
-					self.jumpersBlkRecurse(jumper-8, 2**(jumper-8), newPosition, newMoves)
-
-				if temp << 5 & jumperBB:
-					newMoves = [jumper, jumper - 10] if jumps==[] else jumps+[jumper-10]
-					newFriend = friend - (jumperBB) + (2 ** (jumper-10))
-					newEnemy = enemy - (2 ** (jumper-5)) 
-					newKings = kings
-					# If the jumper is a king, subtract it from where it was and add it to where it landed
-					if jumperBB & kings:
-						newKings = newKings-jumperBB+(2**(jumper-10))
-					# if the taken piece is a king, subtract it from where it was
-					if kings & (2 ** (jumper-5)):
-						newKings = newKings - (2**(jumper-5))
-					newPosition = [newFriend, newEnemy, newKings, position[3]]
-					self.jumpersBlkRecurse(jumper-10, 2**(jumper-10), newPosition, newMoves)
+				self.jumpersBlkRecurse(jumper+(shiftVal*2*onMove), 2**(jumper+(shiftVal*2)), newPosition, newMoves)
 
 		if newMoves == None and jumps:
+			# We could also return the position here
+			# For that: also need to promote and man on last rank to king and change
+			# color on move
 			self.jumps.append(jumps)
 
 	def printBoard(self, data):
@@ -345,15 +317,17 @@ class player(Engine):
 
 if __name__ == '__main__':
 	pos = positions['multiJumpA']
-	# pos = positions['jump']
+	pos = positions['jump']
 	# pos = positions['kingJump']
 	# pos = '[FEN "B:W29,8:B4"]'
 	b = Board(pos)
-	# b.onMove = -1
+	b.onMove = -1
 	p = player(b)
 	position = p.convPos2BB()
 	movers = p.getMovers(position)
 	jumpers = p.getJumpers(position)
 	moves = p.getNormalMoves(position, movers)
 	jumps = p.getJumpMoves(position, jumpers)
+	print(b.printBoard())
 	print(jumps)
+	print(p.printBoard(jumpers))
