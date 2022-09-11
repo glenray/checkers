@@ -48,13 +48,21 @@ class player(Engine):
 	def desc(self):
 		return self._desc
 	
-	def selectMove(self, position, moves):
-		if moves: self.convert2BB(position)
-		# pick random move any way
-		moveLen = len(moves)
-		if moveLen > 0:
-			moveNo = random.randint(0, moveLen-1)
-			return moves[moveNo]
+	def selectMove(self, position = None, moves = None):
+		bbPos = self.convPos2BB(self.board.pos2Fen())
+		jumpers = self.getJumpers(bbPos)
+		if jumpers:
+			moves = self.getJumpMoves(bbPos, jumpers)
+		else:
+			movers = self.getMovers(bbPos)
+			if movers:
+				moves = self.getNormalMoves(bbPos, movers)
+			else:
+				print("No moves, game over.")
+		return moves
+
+	def negaMax(self, position, depth, mp):
+		pass
 
 	def getMovers(self, position):
 		"""
@@ -205,29 +213,28 @@ class player(Engine):
 		moves = []
 		empty = self.emptySqs(position)
 		kings = position[2]
+		onMove = position[3]
+		men_shift = (
+			(empty >> 4 if onMove == 1 else empty << 4, 4*onMove),
+			(empty >> 5 if onMove == 1 else empty << 5, 5*onMove),
+		)
+		king_shift = (
+			(empty << 4 if onMove == 1 else empty >> 4, -4*onMove),
+			(empty << 5 if onMove == 1 else empty >> 5, -5*onMove),	
+		)
 		while movers:
 			x = self.getFirstSetBitPosition(movers)
+			# val = self.S[x-2]
+			# does not work because x includes padding and self.S does not
 			val = 2 ** x
-			if position[3] == 1:
-				if val & empty >> 4:
-					moves.append([x, x+4])
-				if val & empty >> 5:
-					moves.append([x, x+5])
-				if val & kings & empty << 4:
-					moves.append([x, x-4])
-				if val & kings & empty << 5:
-					moves.append([x, x-5])
-			else:
-				if val & empty << 4:
-					moves.append([x, x-4])
-				if val & empty << 5:
-					moves.append([x, x-5])
-				if val & kings & empty >> 4:
-					moves.append([x, x+4])
-				if val & kings & empty >> 5:
-					moves.append([x, x+5])
+			shiftVar = men_shift+king_shift if (val & kings) else men_shift
+			for shift in shiftVar:
+				if val & shift[0]:
+					moves.append([x, x+shift[1]])
 			# is this the fastest way?
 			movers -= val
+			# movers = self.modifyBit(movers, x, 0)
+			# movers = movers^val
 		return moves
 
 	def getJumpMoves(self, position, jumpers):
@@ -236,21 +243,26 @@ class player(Engine):
 		while jumpers:
 			x = self.getFirstSetBitPosition(jumpers)
 			val_x = 2 ** x
-			if position[3] == 1:
-				moves.append(self.jumpersBlkRecurse(x, val_x, position))
+			moves.append(self.jumperRecurse(x, val_x, position))
 			jumpers -= val_x
 		return self.jumps
 
-	def jumpersBlkRecurse(self, jumper, jumperBB, position, jumps=[]):
+	def jumperRecurse(self, jumper, jumperBB, position, jumps=[]):
 		empty = self.emptySqs(position)
-		enemy = position[1]
-		friend = position[0]
 		kings = position[2]
 		onMove = position[3]
-		menShift = operator.rshift if onMove == 1 else operator.lshift
-		kingShift = operator.lshift if onMove == 1 else operator.rshift 
 		newMoves = None
-		# enemies in front left line up with landing squares
+		# set side dependent variables
+		if onMove == 1:
+			friend = position[0]
+			enemy = position[1]
+			menShift = operator.rshift 
+			kingShift = operator.lshift 
+		else:
+			friend = position[1]
+			enemy = position[0]
+			menShift = operator.lshift 
+			kingShift = operator.rshift 
 		men_vars = [
 			((menShift((menShift(empty, 4) & enemy), 4) & jumperBB), 4*onMove), 
 			((menShift((menShift(empty, 5) & enemy), 5) & jumperBB), 5*onMove),
@@ -274,8 +286,7 @@ class player(Engine):
 				if kings & (2 ** (jumper+shiftVal)):
 					newKings = newKings - (2**(jumper+shiftVal))
 				newPosition = [newFriend, newEnemy, newKings, position[3]]
-				self.jumpersBlkRecurse(jumper+(shiftVal*2*onMove), 2**(jumper+(shiftVal*2)), newPosition, newMoves)
-
+				self.jumperRecurse(jumper+(shiftVal*2), 2**(jumper+(shiftVal*2)), newPosition, newMoves)
 		if newMoves == None and jumps:
 			# We could also return the position here
 			# For that: also need to promote and man on last rank to king and change
@@ -316,18 +327,12 @@ class player(Engine):
 		return output
 
 if __name__ == '__main__':
-	pos = positions['multiJumpA']
-	pos = positions['jump']
+	# pos = positions['multiJumpA']
+	# pos = positions['jump']
 	# pos = positions['kingJump']
 	# pos = '[FEN "B:W29,8:B4"]'
-	b = Board(pos)
+	b = Board()
 	b.onMove = -1
 	p = player(b)
-	position = p.convPos2BB()
-	movers = p.getMovers(position)
-	jumpers = p.getJumpers(position)
-	moves = p.getNormalMoves(position, movers)
-	jumps = p.getJumpMoves(position, jumpers)
 	print(b.printBoard())
-	print(jumps)
-	print(p.printBoard(jumpers))
+	print(p.selectMove())
