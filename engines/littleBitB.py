@@ -17,10 +17,14 @@ class player(Engine):
 		self._name = "littleBitB"
 		self._desc = "littleBitA with different bitboard pattern"
 		self.sideVars = None
+		# all squres and padding
+		self.S = tuple(2 ** i for i in range(36))
 		# legal squares (not including the padding) 
-		self.S = tuple(2 ** i for i in range(36) if i not in(8, 17, 26, 35))
+		self.legalSquares = tuple(2 ** i for i in range(36) if i not in(8, 17, 26, 35))
 		# mask for the padding squares
 		self.padding = 34426978560
+		self.blk_king_row_mask = self.S[31] | self.S[32] | self.S[33] | self.S[34]
+		self.wht_king_row_mask = self.S[0] | self.S[1] | self.S[2] | self.S[3]
 		self.jumps = []
 		"""
 		-- All squares work with shift 4 or 5.
@@ -149,11 +153,11 @@ class player(Engine):
 					sq = sq[1:]
 				# self.setSq(position, pColor, int(sq)-1)
 				if pColor < 3:
-					position[0] += self.S[int(sq)-1]
+					position[0] += self.legalSquares[int(sq)-1]
 				if pColor > 2:
-					position[1] += self.S[int(sq)-1]
+					position[1] += self.legalSquares[int(sq)-1]
 				if pColor % 2 == 0:
-					position[2] += self.S[int(sq)-1]
+					position[2] += self.legalSquares[int(sq)-1]
 		return position
 
 	def modifyBit(self, n,  p,  b):
@@ -205,15 +209,28 @@ class player(Engine):
 
 	def getNormalMoves(self, position, movers):
 		'''
-		Get non-jump moves from a bit board of movers
+		Get non-jump moves and the resulting position
+		from a bit board of movers
+		@ param position: list: [a, b, c, d] where:
+			a: black piece bit board
+			b: white piece bit board
+			c: king bit board
+			d: side to move, 1 = black; -1 = white
 		@ param movers: bin: bit board of non jump movers
-		@ return list: list of tuples (x, y), where x is the starting
-		positional bit of the piece and y is the landing square.
+		@ return None
+		Appends to self.moves a tuple(a,b) where:
+			a: list of tuples (x, y), where x is the starting
+			positional bit of the piece and y is the landing square.
+			b: list: the position resulting from the move in the same
+			format as the position param described above
 		'''
 		moves = []
 		empty = self.emptySqs(position)
 		kings = position[2]
 		onMove = position[3]
+		move_operator = operator.lshift if onMove == 1 else operator.rshift
+		friend = position[0] if onMove == 1 else position[1]
+		enemy = position[1] if onMove == 1 else position[0]
 		men_shift = (
 			(empty >> 4 if onMove == 1 else empty << 4, 4*onMove),
 			(empty >> 5 if onMove == 1 else empty << 5, 5*onMove),
@@ -224,17 +241,34 @@ class player(Engine):
 		)
 		while movers:
 			x = self.getFirstSetBitPosition(movers)
-			# val = self.S[x-2]
-			# does not work because x includes padding and self.S does not
 			val = 2 ** x
 			shiftVar = men_shift+king_shift if (val & kings) else men_shift
 			for shift in shiftVar:
+				newkings = kings
 				if val & shift[0]:
-					moves.append([x, x+shift[1]])
+					landingSq = move_operator(val, abs(shift[1]))
+					# toggle from bit
+					newfriend = friend ^ val
+					# toggle landing bit
+					newfriend = newfriend ^ landingSq
+					# update king bitboard
+					if val & kings:
+						newkings = newkings ^ val
+						newkings = newkings ^ landingSq
+					# king promotion
+					if (landingSq & self.wht_king_row_mask) | (landingSq & self.blk_king_row_mask):
+						# mover is not already a king
+						if landingSq & ~kings:
+							newkings += landingSq
+					new_position = [
+						newfriend if onMove == 1 else enemy,
+						newfriend if onMove == -1 else enemy,
+						newkings if newkings else kings,
+						-onMove
+					]
+					moves.append(([x, x+shift[1]], new_position))
 			# is this the fastest way?
 			movers -= val
-			# movers = self.modifyBit(movers, x, 0)
-			# movers = movers^val
 		return moves
 
 	def getJumpMoves(self, position, jumpers):
@@ -252,6 +286,7 @@ class player(Engine):
 		kings = position[2]
 		onMove = position[3]
 		newMoves = None
+		islastMove = False
 		# set side dependent variables
 		if onMove == 1:
 			friend = position[0]
@@ -275,23 +310,33 @@ class player(Engine):
 		for var in variations:
 			if var[0]:
 				shiftVal = var[1]
+				landingSq = 2 ** (jumper+(shiftVal*2))
+				jumpedSq = 2 ** (jumper+shiftVal)
 				newMoves = [jumper, jumper + (shiftVal*2)] if jumps==[] else jumps+[jumper+(shiftVal*2)]
-				newFriend = friend - (jumperBB) + (2 ** (jumper+(shiftVal*2)))
-				newEnemy = enemy - (2 ** (jumper+shiftVal)) 
+				newFriend = friend - jumperBB + landingSq
+				newEnemy = enemy - jumpedSq 
 				newKings = kings
 				# If the jumper is a king, subtract it from where it was and add it to where it landed
 				if jumperBB & kings:
-					newKings = newKings-jumperBB+(2**(jumper+(shiftVal*2)))
-				# if the taken piece is a king, subtract it from where it was
-				if kings & (2 ** (jumper+shiftVal)):
-					newKings = newKings - (2**(jumper+shiftVal))
-				newPosition = [newFriend, newEnemy, newKings, position[3]]
-				self.jumperRecurse(jumper+(shiftVal*2), 2**(jumper+(shiftVal*2)), newPosition, newMoves)
+					newKings = newKings-jumperBB+landingSq
+				# if the jumped piece is a king, subtract it from where it was
+				if kings & jumpedSq:
+					newKings = newKings - jumpedSq
+				# if landing square is back row
+				if (landingSq & self.blk_king_row_mask) | (landingSq & self.wht_king_row_mask):
+					# if jumper was not a king, make it one and then finish this branch since the new king cannot continue to jump.
+					if landingSq & ~newKings:
+						newKings = newKings + landingSq
+						newPosition = [newFriend, newEnemy, newKings, -position[3]] if onMove == 1 else [newEnemy, newFriend, newKings, -position[3]]
+						self.jumps.append((newMoves, newPosition))
+						continue	
+				# the new position after the jump with the same side to move before looking for another jump in the same move
+				newPosition = [newFriend, newEnemy, newKings, position[3]] if onMove == 1 else [newEnemy, newFriend, newKings, position[3]]
+				self.jumperRecurse(jumper+(shiftVal*2), landingSq, newPosition, newMoves)
 		if newMoves == None and jumps:
-			# We could also return the position here
-			# For that: also need to promote and man on last rank to king and change
-			# color on move
-			self.jumps.append(jumps)
+			# toogle onMove
+			position[3] = -position[3]
+			self.jumps.append((jumps, position))
 
 	def printBoard(self, data):
 		"""
@@ -314,7 +359,7 @@ class player(Engine):
 					sq+=1
 				if( type(data) == list ):
 					if( data[0] & mask ): s += 'b'
-					elif( data[1] & mask ):	s += 'r'
+					elif( data[1] & mask ):	s += 'w'
 					else: s += "-"
 					if( data[2] & mask ): s = s.upper()
 				else:
@@ -328,11 +373,16 @@ class player(Engine):
 
 if __name__ == '__main__':
 	# pos = positions['multiJumpA']
+	pos = positions['royalTour']
 	# pos = positions['jump']
 	# pos = positions['kingJump']
-	# pos = '[FEN "B:W29,8:B4"]'
-	b = Board()
-	b.onMove = -1
+	# pos = '[FEN "W:W11:BK7"]'
+	# pos = '[FEN "B:W18,26,27,25,11,19:B15"]'
+	b = Board(pos)
+	b.onMove = -b.onMove
 	p = player(b)
+	moves = p.selectMove()
 	print(b.printBoard())
-	print(p.selectMove())
+	for move in moves:
+		print(f'Move: {move[0]}')
+		print(p.printBoard(move[1]))
