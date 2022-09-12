@@ -349,27 +349,34 @@ class player(Engine):
 		"""
 		sq = 0
 		spacer = "  "
-		output = ""
+		topBottom = "   -------------------\n"
+		output = topBottom
+		borderNums = (0, 3, 4, 7, 9, 12, 13, 16, 18, 21, 22, 25, 27, 30, 31, 34)
+		i = 0
 		for row in range(8):
-			s = spacer 	if row%2 == 0 else ""
+			s = spacer if row%2 == 0 else ""
+			s = "{:>2} | ".format(borderNums[i])+s
+			i+=1
 			for col in range(4):
 				mask = 1 << sq
 				if mask & self.padding:
 					mask = mask << 1
 					sq+=1
 				if( type(data) == list ):
-					if( data[0] & mask ): s += 'b'
-					elif( data[1] & mask ):	s += 'w'
-					else: s += "-"
+					if( data[0] & mask ): s += 'b '
+					elif( data[1] & mask ):	s += 'w '
+					else: s += "- "
 					if( data[2] & mask ): s = s.upper()
 				else:
 					if( data & mask ): s += '1'
 					else: s +='0'
 				sq += 1
-				output += s+spacer
-				s=""
-			output += "\n"
-		return output
+				s += spacer
+				
+			s = s.rstrip()
+			output += s.ljust(20, " ")+" | {:>2}\n".format(borderNums[i])
+			i+=1
+		print(output + topBottom)
 
 if __name__ == '__main__':
 	# pos = positions['multiJumpA']
@@ -385,4 +392,4 @@ if __name__ == '__main__':
 	print(b.printBoard())
 	for move in moves:
 		print(f'Move: {move[0]}')
-		print(p.printBoard(move[1]))
+		p.printBoard(move[1])
