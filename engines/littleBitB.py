@@ -53,20 +53,45 @@ class player(Engine):
 		return self._desc
 	
 	def selectMove(self, position = None, moves = None):
-		bbPos = self.convPos2BB(self.board.pos2Fen())
-		jumpers = self.getJumpers(bbPos)
+		moves = self.getMoves(bitboards)
+
+	def getMoves(self, position = None):
+		if position == None:
+			position = self.convPos2BB(self.board.pos2Fen())	
+		jumpers = self.getJumpers(position)
 		if jumpers:
-			moves = self.getJumpMoves(bbPos, jumpers)
+			moves = self.getJumpMoves(position, jumpers)
 		else:
-			movers = self.getMovers(bbPos)
+			movers = self.getMovers(position)
 			if movers:
-				moves = self.getNormalMoves(bbPos, movers)
+				moves = self.getNormalMoves(position, movers)
 			else:
-				print("No moves, game over.")
+				return none
 		return moves
 
-	def negaMax(self, position, depth, mp):
-		pass
+
+	def negaMax(self, position, depth, maxplayer, alpha=None, beta=None):
+		'''
+		Find minmax's best move recursively until self.maxdepth of the search tree
+		@param position: list: [a, b, c, d] where:
+			a: black man bitboard
+			b: white man bitboard
+			c: king bitboard
+			d: side to move, 1 for black; -1 for white
+		@param depth: int: maximum depth of search
+		@param maxplayer: int: whether to maximize or minimize, 1 to minimize; -1 to maximize
+		@param alpha: float:
+		@param beta: float:
+		'''
+		# if depth, then return evaluation and the move
+		if self.maxdepth == depth:
+			return scorePosition(position), position[0]
+		# if there are no moves in this position, game over
+		elif len(position[0]) == 0:
+			return 100*maxplayer, None
+		# iterate moves from position
+		else:
+			pass
 
 	def getMovers(self, position):
 		"""
@@ -340,12 +365,11 @@ class player(Engine):
 
 	def printBoard(self, data):
 		"""
-		Display bitboard as human readable board
+		Print bitboard as human readable board
 		@ param data: int or list: if list of 4 ints, the current position 
 		is displayed as pieces (b, r, B, R). 
 		Assuming list is [bp, rp, kings, onmove]
 		If int, the bitWord is displayed as 0s and 1s
-		@ return str: a human readable checker board
 		"""
 		sq = 0
 		spacer = "  "
@@ -356,7 +380,6 @@ class player(Engine):
 		for row in range(8):
 			s = spacer if row%2 == 0 else ""
 			s = "{:>2} | ".format(borderNums[i])+s
-			i+=1
 			for col in range(4):
 				mask = 1 << sq
 				if mask & self.padding:
@@ -372,10 +395,9 @@ class player(Engine):
 					else: s +='0'
 				sq += 1
 				s += spacer
-				
 			s = s.rstrip()
-			output += s.ljust(20, " ")+" | {:>2}\n".format(borderNums[i])
-			i+=1
+			output += s.ljust(20, " ")+" | {:>2}\n".format(borderNums[i+1])
+			i+=2
 		print(output + topBottom)
 
 if __name__ == '__main__':
@@ -388,7 +410,7 @@ if __name__ == '__main__':
 	b = Board(pos)
 	b.onMove = -b.onMove
 	p = player(b)
-	moves = p.selectMove()
+	moves = p.getMoves()
 	print(b.printBoard())
 	for move in moves:
 		print(f'Move: {move[0]}')

@@ -77,7 +77,7 @@ class player(Engine):
 		self.setScratchBoard(upper_pos)
 		self.scratchBoard.getLegalMoves()
 		v = float("inf") * mp
-		# Return the position's score at if at maxdepth
+		# Return the position's score if at maxdepth
 		if depth == self.maxdepth:
 			return self.pieceCount(self.scratchBoard), None
 		# if there no legal moves, mp loses the game in this branch
