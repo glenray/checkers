@@ -3,6 +3,7 @@ import operator
 import random
 import re
 from types import SimpleNamespace
+import time
 from engines.engine import Engine
 from board2 import Board
 from positions import positions
@@ -12,17 +13,22 @@ Translate board position to a bit board
 Glen Pritchard -- 9/8/2022
 '''
 class player(Engine):
-	def __init__(self, board):
+	def __init__(self, board, maxdepth=2):
 		super(player, self).__init__(board)
 		self._name = "littleBitB"
 		self._desc = "littleBitA with different bitboard pattern"
+		self.maxdepth = maxdepth
 		self.sideVars = None
+		self.totalNodes = 0
 		# all squres and padding
 		self.S = tuple(2 ** i for i in range(36))
 		# legal squares (not including the padding) 
 		self.legalSquares = tuple(2 ** i for i in range(36) if i not in(8, 17, 26, 35))
-		# mask for the padding squares
-		self.padding = 34426978560
+		# bitpos2fen maps bit positions to fen square numbers
+		legalSqPositions = tuple(i for i in range(36) if i not in (8,17,26,35))
+		self.bitpos2fen = {v: i+1 for i, v in enumerate(legalSqPositions)}
+		# mask for the padding squares [8, 17, 26, 35, 36, 37, 38, 39]
+		self.padding = 1065219129600
 		self.blk_king_row_mask = self.S[31] | self.S[32] | self.S[33] | self.S[34]
 		self.wht_king_row_mask = self.S[0] | self.S[1] | self.S[2] | self.S[3]
 		self.jumps = []
@@ -52,8 +58,37 @@ class player(Engine):
 	def desc(self):
 		return self._desc
 	
+	@property
+	def name(self):
+		return f"{self._name}@d{self.maxdepth}"
+
 	def selectMove(self, position = None, moves = None):
-		moves = self.getMoves(bitboards)
+		self.totalNodes = 0
+		startTime = time.time()
+		breakpoint()
+		moves = self.getMoves()
+		score, move = self.negaMax(moves, 0, -1)
+		endTime = time.time()
+		self.elapsedTime = round(endTime - startTime, 2)
+		try:
+			self.nps = int(self.totalNodes/self.elapsedTime)
+		except ZeroDivisionError:
+			self.nps = "0 Error"
+		self.score = score
+		if move:
+			fenmove = self.move2FEN(move[0])
+		else:
+			fenmove = None
+		return fenmove
+
+	def move2FEN(self, move):
+		retval = []
+		for i in move:
+			try:
+				retval.append(self.bitpos2fen[i])
+			except:
+				breakpoint()
+		return retval
 
 	def getMoves(self, position = None):
 		if position == None:
@@ -66,11 +101,10 @@ class player(Engine):
 			if movers:
 				moves = self.getNormalMoves(position, movers)
 			else:
-				return none
+				return None
 		return moves
 
-
-	def negaMax(self, position, depth, maxplayer, alpha=None, beta=None):
+	def negaMax(self, position, depth, maxplayer, tmove=[], alpha=None, beta=None):
 		'''
 		Find minmax's best move recursively until self.maxdepth of the search tree
 		@param position: list: [a, b, c, d] where:
@@ -83,15 +117,36 @@ class player(Engine):
 		@param alpha: float:
 		@param beta: float:
 		'''
+		v = float('inf') * maxplayer
 		# if depth, then return evaluation and the move
 		if self.maxdepth == depth:
-			return scorePosition(position), position[0]
+			return self.scorePosition(tmove), None
 		# if there are no moves in this position, game over
-		elif len(position[0]) == 0:
+		elif position == None or position == []:
 			return 100*maxplayer, None
 		# iterate moves from position
 		else:
-			pass
+			for move in position:
+				tempv = v
+				self.totalNodes += 1
+				v, placeholder = self.negaMax(
+					self.getMoves(move[1]), 
+					depth+1, 
+					-maxplayer,
+					move,
+					alpha, 
+					beta)
+				if maxplayer == -1:
+					if v > tempv:
+						best_move = move
+					v = max(v, tempv)
+				else:
+					v = min(v, tempv)
+					best_move = None
+			return v, best_move
+
+	def scorePosition(self, position):
+		return 1
 
 	def getMovers(self, position):
 		"""
@@ -144,11 +199,11 @@ class player(Engine):
 			jumpers |= temp << 4 & friend 
 			temp = empty << 5 & enemy 
 			jumpers |= (temp << 5 & friend)
-			if kings:
+			if kings & friend:
 				temp = empty >> 4 & enemy 
-				jumpers |= temp >> 4 & friend 
+				jumpers |= temp >> 4 & (kings & friend) 
 				temp = empty >> 5 & enemy 
-				jumpers |= (temp >> 5 & friend)
+				jumpers |= temp >> 5 & (kings & friend)
 		return jumpers
 
 	def convPos2BB(self, fen=None):
@@ -402,16 +457,19 @@ class player(Engine):
 
 if __name__ == '__main__':
 	# pos = positions['multiJumpA']
-	pos = positions['royalTour']
+	# pos = positions['royalTour']
 	# pos = positions['jump']
 	# pos = positions['kingJump']
 	# pos = '[FEN "W:W11:BK7"]'
 	# pos = '[FEN "B:W18,26,27,25,11,19:B15"]'
+	# pos = '[FEN "B:W22,30:BK18"]' #Not working. Tries to jump 30 off the board
+	# pos = '[FEN "W:W15:B10,1"]' #But this does work. w does not try to jump 1
+	# pos = '[FEN "B:W15:BK30"]' # Not working tries to move off board to 36
+	pos = '[FEN "B:WK5,6:B25,26,27,28,17,18,19,10,11,2"]'
+	pos = '[FEN "W:W6,K1:B25,26,27,28,17,18,19,10,11,2"]'
 	b = Board(pos)
-	b.onMove = -b.onMove
-	p = player(b)
-	moves = p.getMoves()
 	print(b.printBoard())
-	for move in moves:
-		print(f'Move: {move[0]}')
-		p.printBoard(move[1])
+	# b.onMove = -b.onMove
+	p = player(b)
+	move = p.selectMove()
+	print(move)
