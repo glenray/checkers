@@ -65,7 +65,6 @@ class player(Engine):
 	def selectMove(self, position = None, moves = None):
 		self.totalNodes = 0
 		startTime = time.time()
-		breakpoint()
 		moves = self.getMoves()
 		score, move = self.negaMax(moves, 0, -1)
 		endTime = time.time()
@@ -146,7 +145,20 @@ class player(Engine):
 			return v, best_move
 
 	def scorePosition(self, position):
-		return 1
+		pos = position[1]
+		bpCount = self.countSetBits(pos[0])
+		bpCount += self.countSetBits(pos[0] & pos[2])
+		if bpCount == 0:
+			return -100 if pos[3] == 1 else 100
+		wpCount = self.countSetBits(pos[1])
+		wpCount += self.countSetBits(pos[1] & pos[2])
+		if wpCount == 0:
+			return 100 if pos[3] == 1 else -100
+		score = bpCount - wpCount
+		if pos[3] == 1:
+			return score
+		else:
+			return -score
 
 	def getMovers(self, position):
 		"""
@@ -168,7 +180,7 @@ class player(Engine):
 		else:
 			movers = (empty << 4 & friend) | (empty << 5 & friend)
 			if kings & friend:
-				movers = (empty >> 4 & kings) | (empty >> 5 & kings)
+				movers |= (empty >> 4 & kings) | (empty >> 5 & kings)
 		return movers
 
 	def getJumpers(self, position):
@@ -308,7 +320,6 @@ class player(Engine):
 		empty = self.emptySqs(position)
 		kings = position[2]
 		onMove = position[3]
-		move_operator = operator.lshift if onMove == 1 else operator.rshift
 		friend = position[0] if onMove == 1 else position[1]
 		enemy = position[1] if onMove == 1 else position[0]
 		men_shift = (
@@ -326,7 +337,10 @@ class player(Engine):
 			for shift in shiftVar:
 				newkings = kings
 				if val & shift[0]:
-					landingSq = move_operator(val, abs(shift[1]))
+					# this does not work because kings shift in opposite direction
+					# landingSq = move_operator(val, abs(shift[1]))
+					lsop = operator.mul if shift[1]>0 else operator.floordiv 
+					landingSq = lsop(val, 2**abs(shift[1]))
 					# toggle from bit
 					newfriend = friend ^ val
 					# toggle landing bit
@@ -465,11 +479,26 @@ if __name__ == '__main__':
 	# pos = '[FEN "B:W22,30:BK18"]' #Not working. Tries to jump 30 off the board
 	# pos = '[FEN "W:W15:B10,1"]' #But this does work. w does not try to jump 1
 	# pos = '[FEN "B:W15:BK30"]' # Not working tries to move off board to 36
-	pos = '[FEN "B:WK5,6:B25,26,27,28,17,18,19,10,11,2"]'
-	pos = '[FEN "W:W6,K1:B25,26,27,28,17,18,19,10,11,2"]'
+	royalTour = [
+	    '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]', #14, 0
+	    '[FEN "B:W27,18,15,11,5,6,7:B25,26,28,17,20,9,10,2,3,4"]', #13, 1
+	    '[FEN "W:W27,18,11,5,6,7:B25,26,28,17,19,20,9,2,3,4"]', #12, 2
+	    '[FEN "B:W27,18,11,6,7,K1:B25,26,28,17,19,20,9,2,3,4"]', #11, 3
+	    '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]', #10, 4
+	    '[FEN "B:W27,18,6,8,K1:B25,26,28,17,19,20,9,10,2,4"]', #9, 5
+	    '[FEN "W:W27,18,6,K1:B25,26,28,17,19,20,9,10,11,2"]', #8, 6
+	    '[FEN "B:W24,18,6,K1:B25,26,28,17,19,20,9,10,11,2"]', #7, 7
+	    '[FEN "W:W18,6,K1:B25,26,27,28,17,19,9,10,11,2"]', #6, 8
+	    '[FEN "B:W14,6,K1:B25,26,27,28,17,19,9,10,11,2"]', #5, 9
+	    '[FEN "W:W6,K1:B25,26,27,28,17,18,19,10,11,2"]', #4, 10
+	    '[FEN "B:WK5,6:B25,26,27,28,17,18,19,10,11,2"]', #3, 11
+	    '[FEN "W:WK5:B25,26,27,28,17,18,19,9,10,11"]', #2, 12
+	    '[FEN "B:WK32:B28"]' #1, 13
+	]
+	pos = '[FEN "W:W18,6,K1:B25,26,27,28,17,19,9,10,11,2"]'
 	b = Board(pos)
 	print(b.printBoard())
 	# b.onMove = -b.onMove
-	p = player(b)
+	p = player(b, maxdepth=6)
 	move = p.selectMove()
-	print(move)
+	print(move, p.score)

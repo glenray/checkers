@@ -22,6 +22,7 @@ royalTour.reverse()
 def run(EngineClass, kwargs = None):
     maxdepth = 1
     for position in royalTour:
+        print(f"Working on {position}")
         b = Board(position)
         engine = EngineClass(b, maxdepth=maxdepth, **kwargs)
         move = engine.selectMove()

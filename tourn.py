@@ -98,4 +98,6 @@ if __name__ == "__main__" :
 	moron = engines.moron(b)
 	minmaxAB = engines.minmaxB(b, maxdepth=3, ab=True)
 	negamax = engines.negamax(b, maxdepth=7, ab=True)
-	Tourn(board=b, bp=negamax, rp=minmaxAB, n=10)
+	littlebitB = engines.littlebitB(b, maxdepth=5)
+
+	Tourn(board=b, bp=littlebitB, rp=minmaxAB, n=10)
