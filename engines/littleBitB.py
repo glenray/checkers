@@ -211,11 +211,11 @@ class player(Engine):
 			jumpers |= temp >> 4 & friend 
 			temp = empty >> 5 & enemy 
 			jumpers |= (temp >> 5 & friend)
-			if kings:
+			if kings & friend:
 				temp = empty << 4 & enemy 
-				jumpers |= temp << 4 & kings 
+				jumpers |= temp << 4 & (kings & friend)
 				temp = empty << 5 & enemy 
-				jumpers |= temp << 5 & kings
+				jumpers |= temp << 5 & (kings & friend)
 		# White to move
 		else:
 			temp = empty << 4 & enemy 
