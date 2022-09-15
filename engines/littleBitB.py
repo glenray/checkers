@@ -1,3 +1,4 @@
+import copy
 import math
 import operator
 import random
@@ -5,6 +6,7 @@ import re
 from types import SimpleNamespace
 import time
 from engines.engine import Engine
+from engines.moveNode import littleBNode as moveNode
 from board2 import Board
 from positions import positions
 '''
@@ -13,12 +15,13 @@ Translate board position to a bit board
 Glen Pritchard -- 9/8/2022
 '''
 class player(Engine):
-	def __init__(self, board, maxdepth=2):
+	def __init__(self, board, maxdepth=2, ab=False, maketree=False):
 		super(player, self).__init__(board)
 		self._name = "littleBitB"
 		self._desc = "littleBitA with different bitboard pattern"
 		self.maxdepth = maxdepth
-		self.sideVars = None
+		self.ab = ab
+		self.maketree = maketree
 		self.totalNodes = 0
 		# all squres and padding
 		self.S = tuple(2 ** i for i in range(36))
@@ -66,7 +69,8 @@ class player(Engine):
 		self.totalNodes = 0
 		startTime = time.time()
 		moves = self.getMoves()
-		score, move = self.negaMax(moves, 0, -1)
+		self.root = moveNode(self.getBoardStr, [None, self.convPos2BB(self.board.pos2Fen())]) if self.maketree else None
+		score, move = self.negaMax(moves, 0, -1, parentNode=self.root)
 		endTime = time.time()
 		self.elapsedTime = round(endTime - startTime, 2)
 		try:
@@ -91,7 +95,7 @@ class player(Engine):
 
 	def getMoves(self, position = None):
 		if position == None:
-			position = self.convPos2BB(self.board.pos2Fen())	
+			position = self.convPos2BB(self.board.pos2Fen())
 		jumpers = self.getJumpers(position)
 		if jumpers:
 			moves = self.getJumpMoves(position, jumpers)
@@ -103,7 +107,7 @@ class player(Engine):
 				return None
 		return moves
 
-	def negaMax(self, position, depth, maxplayer, tmove=[], alpha=None, beta=None):
+	def negaMax(self, position, depth, maxplayer, tmove=[], alpha=None, beta=None, parentNode=None):
 		'''
 		Find minmax's best move recursively until self.maxdepth of the search tree
 		@param position: list: [a, b, c, d] where:
@@ -127,6 +131,12 @@ class player(Engine):
 		else:
 			for move in position:
 				tempv = v
+				if parentNode:
+					node = moveNode(self.getBoardStr, move)
+					parentNode.addChild(node)
+					node.move = self.move2FEN(move[0])
+				else:
+					node = None
 				self.totalNodes += 1
 				v, placeholder = self.negaMax(
 					self.getMoves(move[1]), 
@@ -134,7 +144,8 @@ class player(Engine):
 					-maxplayer,
 					move,
 					alpha, 
-					beta)
+					beta,
+					node)
 				if maxplayer == -1:
 					if v > tempv:
 						best_move = move
@@ -337,8 +348,6 @@ class player(Engine):
 			for shift in shiftVar:
 				newkings = kings
 				if val & shift[0]:
-					# this does not work because kings shift in opposite direction
-					# landingSq = move_operator(val, abs(shift[1]))
 					lsop = operator.mul if shift[1]>0 else operator.floordiv 
 					landingSq = lsop(val, 2**abs(shift[1]))
 					# toggle from bit
@@ -352,7 +361,7 @@ class player(Engine):
 					# king promotion
 					if (landingSq & self.wht_king_row_mask) | (landingSq & self.blk_king_row_mask):
 						# mover is not already a king
-						if landingSq & ~kings:
+						if landingSq & ~newkings:
 							newkings += landingSq
 					new_position = [
 						newfriend if onMove == 1 else enemy,
@@ -433,6 +442,9 @@ class player(Engine):
 			self.jumps.append((jumps, position))
 
 	def printBoard(self, data):
+		print(self.getBoardStr(data))
+
+	def getBoardStr(self, data):
 		"""
 		Print bitboard as human readable board
 		@ param data: int or list: if list of 4 ints, the current position 
@@ -467,7 +479,7 @@ class player(Engine):
 			s = s.rstrip()
 			output += s.ljust(20, " ")+" | {:>2}\n".format(borderNums[i+1])
 			i+=2
-		print(output + topBottom)
+		return output + topBottom
 
 if __name__ == '__main__':
 	# pos = positions['multiJumpA']
