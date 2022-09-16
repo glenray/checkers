@@ -186,12 +186,10 @@ class player(Engine):
 		if position[3] == 1:
 			# line up empty squares and black squares
 			movers = (empty >> 4 & friend) | (empty >> 5 & friend)
-			if kings & friend:
-				movers |= (empty << 4 & kings) | (empty << 5 & kings)
+			movers |= (empty << 4 & kings & friend) | (empty << 5 & kings & friend)
 		else:
 			movers = (empty << 4 & friend) | (empty << 5 & friend)
-			if kings & friend:
-				movers |= (empty >> 4 & kings) | (empty >> 5 & kings)
+			movers |= (empty >> 4 & kings & friend) | (empty >> 5 & kings & friend)
 		return movers
 
 	def getJumpers(self, position):
@@ -346,12 +344,12 @@ class player(Engine):
 			val = 2 ** x
 			shiftVar = men_shift+king_shift if (val & kings) else men_shift
 			for shift in shiftVar:
-				newkings = kings
+				newfriend, newkings = friend, kings
 				if val & shift[0]:
 					lsop = operator.mul if shift[1]>0 else operator.floordiv 
 					landingSq = lsop(val, 2**abs(shift[1]))
-					# toggle from bit
-					newfriend = friend ^ val
+					# toggle from square bit
+					newfriend = newfriend ^ val
 					# toggle landing bit
 					newfriend = newfriend ^ landingSq
 					# update king bitboard
