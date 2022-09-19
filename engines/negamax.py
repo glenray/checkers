@@ -52,7 +52,7 @@ class player(Engine):
 	def selectMove(self, position=None, moves=None):
 		self.totalNodes = 0
 		startTime = time.time()
-		self.root = moveNode(copy.deepcopy(self.board)) if self.maketree else None
+		self.root = moveNode() if self.maketree else None
 		pos = (copy.copy(self.board.position), self.board.onMove)
 		value, move = self.negaMax(pos, 0, float("-inf"), float("inf"), -1, self.root)
 		endTime = time.time()
@@ -90,7 +90,7 @@ class player(Engine):
 				self.scratchBoard.makeMove(move)
 				vtemp = v
 				if parentNode:
-					node = moveNode(copy.deepcopy(self.scratchBoard))
+					node = moveNode()
 					parentNode.addChild(node)
 				else:
 					node = None

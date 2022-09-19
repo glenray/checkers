@@ -17,6 +17,7 @@ Glen Pritchard -- 9/8/2022
 class player(Engine):
 	def __init__(self, board, maxdepth=2, ab=False, maketree=False):
 		super(player, self).__init__(board)
+		self.scratchBoard = Board()
 		self._name = "littleBitB"
 		self._desc = "littleBitA with different bitboard pattern"
 		self.maxdepth = maxdepth
@@ -27,8 +28,8 @@ class player(Engine):
 		self.S = tuple(2 ** i for i in range(36))
 		# legal squares (not including the padding) 
 		self.legalSquares = tuple(2 ** i for i in range(36) if i not in(8, 17, 26, 35))
-		# bitpos2fen maps bit positions to fen square numbers
 		legalSqPositions = tuple(i for i in range(36) if i not in (8,17,26,35))
+		# bitpos2fen maps bit positions to fen square numbers
 		self.bitpos2fen = {v: i+1 for i, v in enumerate(legalSqPositions)}
 		# mask for the padding squares [8, 17, 26, 35, 36, 37, 38, 39]
 		self.padding = 1065219129600
@@ -69,7 +70,7 @@ class player(Engine):
 		self.totalNodes = 0
 		startTime = time.time()
 		moves = self.getMoves()
-		self.root = moveNode(self.getBoardStr, [None, self.convPos2BB(self.board.pos2Fen())]) if self.maketree else None
+		self.root = moveNode([None, self.convPos2BB(self.board.pos2Fen())]) if self.maketree else None
 		score, move = self.negaMax(moves, 0, -1, parentNode=self.root)
 		endTime = time.time()
 		self.elapsedTime = round(endTime - startTime, 2)
@@ -107,16 +108,69 @@ class player(Engine):
 				return None
 		return moves
 
+	def checkMoves(self, position):
+		'''
+		Generate legal move list from bitboard position using board2.Board
+		Used for diagnosis. If there is a difference in the move list, one
+		of the engines has a problem.
+		'''
+		if not hasattr(self, 'x'):
+			self.x = 1
+		bd = self.board.initEmptyBoard()
+		bbLegalSqs = self.legalSquares
+		bdLegalSqs = self.board.FEN2Pos
+		blk, wht, kng, onM = position[0], position[1], position[2], position[3]
+		# iterate legal squares
+		for sq in range(32):
+			bbSq = bbLegalSqs[sq]
+			brdSq = bdLegalSqs[sq]
+			if bbSq & blk:
+				bd[brdSq] = self.board.BP
+				if bbSq & kng:
+					bd[brdSq] += 1
+			elif bbSq & wht:
+				bd[brdSq] = self.board.WP
+				if bbSq & kng:
+					bd[brdSq] += 1
+			else:
+				bd[brdSq] == self.board.EMPTY
+		
+		self.scratchBoard.position = bd
+		self.scratchBoard.onMove = onM
+		self.scratchBoard.getLegalMoves()
+		bitMoves = self.getMoves(position)
+
+		board2MoveList = self.scratchBoard.legalMoves2FEN(self.scratchBoard.legalMoves)
+		if bitMoves == None:
+			print(f"{self.x}. Bitmoves is empty list. Board2 says {board2MoveList}")
+			self.x+=1
+		else:
+			bitboardMoveList = [self.move2FEN(m[0]) for m in bitMoves]
+			bitboardMoveList.sort()
+			board2MoveList.sort()
+
+			if not (bitboardMoveList == board2MoveList):
+				print(f"BitBoard produced a different move list:")
+				print(position)
+				breakpoint()
+
 	def negaMax(self, position, depth, maxplayer, tmove=[], alpha=None, beta=None, parentNode=None):
 		'''
-		Find minmax's best move recursively until self.maxdepth of the search tree
-		@param position: list: [a, b, c, d] where:
-			a: black man bitboard
-			b: white man bitboard
-			c: king bitboard
-			d: side to move, 1 for black; -1 for white
+		Find minmax's best move recursively until self.maxdepth
+		@param position: list:  a list of tuples where each tuple is
+			[([e, f, ..], [a, b, c, d])] where:
+				[e, f, ...]: list of moves with starting square 
+				first followed by each landing square
+			[a, b, c, d] the position resulting from the move where
+				a: black man bitboard
+				b: white man bitboard
+				c: king bitboard
+				d: side to move, 1 for black; -1 for white
 		@param depth: int: maximum depth of search
 		@param maxplayer: int: whether to maximize or minimize, 1 to minimize; -1 to maximize
+		@param tmove: tuple: the parent move: (a, b) where 
+			a is a list of ints representing starting squares and landing squares
+			b is the resulting position
 		@param alpha: float:
 		@param beta: float:
 		'''
@@ -132,12 +186,13 @@ class player(Engine):
 			for move in position:
 				tempv = v
 				if parentNode:
-					node = moveNode(self.getBoardStr, move)
+					node = moveNode(move)
 					parentNode.addChild(node)
 					node.move = self.move2FEN(move[0])
 				else:
 					node = None
 				self.totalNodes += 1
+				# self.checkMoves(move[1])
 				v, placeholder = self.negaMax(
 					self.getMoves(move[1]), 
 					depth+1, 
@@ -206,7 +261,7 @@ class player(Engine):
 		# Black to move
 		if position[3] == 1:
 			temp = empty >> 4 & enemy 
-			jumpers |= temp >> 4 & friend 
+			jumpers |= (temp >> 4 & friend)
 			temp = empty >> 5 & enemy 
 			jumpers |= (temp >> 5 & friend)
 			if kings & friend:
@@ -506,9 +561,8 @@ if __name__ == '__main__':
 	    '[FEN "B:WK32:B28"]' #1, 13
 	]
 	pos = '[FEN "W:W18,6,K1:B25,26,27,28,17,19,9,10,11,2"]'
+	pos = '[FEN "B:W27,18,11,6,7,K1:B25,26,28,17,19,20,9,2,3,4"]'
+	pos = '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]'
 	b = Board(pos)
-	print(b.printBoard())
-	# b.onMove = -b.onMove
-	p = player(b, maxdepth=6)
-	move = p.selectMove()
-	print(move, p.score)
+	p = player(b, maxdepth=10)
+	moves = p.selectMove()

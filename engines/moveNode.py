@@ -1,8 +1,8 @@
 class moveNode:
-	def __init__(self, board, parent = None):
-		self.board = board
+	def __init__(self, move=None, parent = None):
 		self.parent = parent
 		self.children = []
+		self.move = move
 
 	def addChild(self, child):
 		self.children.append(child)
@@ -59,12 +59,11 @@ class moveNode:
 
 
 	def __repr__(self):
-		return self.board.printBoard()
+		return str(self.move)
 
 
 class littleBNode:
-	def __init__(self, reperMethod, position, parent = None):
-		self.reperMethod = reperMethod
+	def __init__(self, position, parent = None):
 		self.parent = parent
 		self.children = []
 		self.position = position
@@ -124,4 +123,4 @@ class littleBNode:
 
 
 	def __repr__(self):
-		return self.reperMethod(self.position[1])
+		return str(self.position)

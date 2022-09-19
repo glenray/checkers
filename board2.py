@@ -35,15 +35,14 @@ class Board:
 		self.onMove	= None
 		self.legalMoves = []
 		self.isJump = False
-		# 46 element list representing 32 board squares plus out of bounds padding
-		self.position = []
 		self.startFEN = '[FEN "B:W21,22,23,24,25,26,27,28,29,30,31,32:B1,2,3,4,5,6,7,8,9,10,11,12"]'
 		self.startPos = startPos if startPos != None else self.startFEN
 		# Array to convert FEN square no to self.position index value
 		# idx+1 is FEN sq position; value is index to self.position array
 		self.FEN2Pos = [37, 38, 39, 40, 32, 33, 34, 35, 28, 29, 30, 31, 23, 24, 25, 26, 19, 20, 21, 22,14, 15, 16, 17, 10, 11, 12, 13, 5, 6, 7, 8]
 		self.pos2FEN = {v:k+1 for k,v in enumerate(self.FEN2Pos)}
-		self.initEmptyBoard()
+		# 46 element list representing 32 board squares plus out of bounds padding
+		self.position = self.initEmptyBoard()
 		self.parseFen()
 
 	def reset(self):
@@ -139,10 +138,11 @@ class Board:
 
 	def initEmptyBoard(self):
 		# init empty position
-		self.position = [self.EMPTY]*46
+		retVal = [self.EMPTY]*46
 		# set out of bounds squares
 		for i in [0,1,2,3,4,9,18,27,36,41,42,43,44,45]:
-			self.position[i] = self.OOB
+			retVal[i] = self.OOB
+		return retVal
 
 	def printBoard(self, position=None):
 		'''
