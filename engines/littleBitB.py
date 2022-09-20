@@ -15,13 +15,14 @@ Translate board position to a bit board
 Glen Pritchard -- 9/8/2022
 '''
 class player(Engine):
-	def __init__(self, board, maxdepth=2, ab=False, maketree=False):
+	def __init__(self, board, maxdepth=5, ab=False, randomize=True, maketree=False):
 		super(player, self).__init__(board)
 		self.scratchBoard = Board()
 		self._name = "littleBitB"
 		self._desc = "littleBitA with different bitboard pattern"
 		self.maxdepth = maxdepth
 		self.ab = ab
+		self.randomize = randomize
 		self.maketree = maketree
 		self.totalNodes = 0
 		# all squres and padding
@@ -71,7 +72,7 @@ class player(Engine):
 		startTime = time.time()
 		moves = self.getMoves()
 		self.root = moveNode([None, self.convPos2BB(self.board.pos2Fen())]) if self.maketree else None
-		score, move = self.negaMax(moves, 0, -1, parentNode=self.root)
+		score, move = self.negaMax(moves, 0, -1, alpha=float("-inf"), beta=float("inf"), parentNode=self.root)
 		endTime = time.time()
 		self.elapsedTime = round(endTime - startTime, 2)
 		try:
@@ -106,6 +107,8 @@ class player(Engine):
 				moves = self.getNormalMoves(position, movers)
 			else:
 				return None
+		if self.randomize:
+			random.shuffle(moves)
 		return moves
 
 	def checkMoves(self, position):
@@ -177,7 +180,8 @@ class player(Engine):
 		v = float('inf') * maxplayer
 		# if depth, then return evaluation and the move
 		if self.maxdepth == depth:
-			return self.scorePosition(tmove), None
+			score = -self.scorePosition(tmove) if maxplayer == 1 else self.scorePosition(tmove)
+			return score, None
 		# if there are no moves in this position, game over
 		elif position == None or position == []:
 			return 100*maxplayer, None
@@ -208,23 +212,29 @@ class player(Engine):
 				else:
 					v = min(v, tempv)
 					best_move = None
+
+				# pruning
+				if self.ab:
+					if maxplayer == -1:
+						if v >= beta:
+							return v, best_move
+						alpha = max(alpha, v)
+					else:
+						if v <= alpha:
+							return v, None
+						beta = min(beta, v)
+
 			return v, best_move
 
 	def scorePosition(self, position):
+		# breakpoint()
 		pos = position[1]
 		bpCount = self.countSetBits(pos[0])
 		bpCount += self.countSetBits(pos[0] & pos[2])
-		if bpCount == 0:
-			return -100 if pos[3] == 1 else 100
 		wpCount = self.countSetBits(pos[1])
 		wpCount += self.countSetBits(pos[1] & pos[2])
-		if wpCount == 0:
-			return 100 if pos[3] == 1 else -100
 		score = bpCount - wpCount
-		if pos[3] == 1:
-			return score
-		else:
-			return -score
+		return score if pos[3] == 1 else -score
 
 	def getMovers(self, position):
 		"""
@@ -563,6 +573,11 @@ if __name__ == '__main__':
 	pos = '[FEN "W:W18,6,K1:B25,26,27,28,17,19,9,10,11,2"]'
 	pos = '[FEN "B:W27,18,11,6,7,K1:B25,26,28,17,19,20,9,2,3,4"]'
 	pos = '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]'
+	pos = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	b = Board(pos)
-	p = player(b, maxdepth=10)
-	moves = p.selectMove()
+	print(b.printBoard())
+
+	for i in range(25):
+		p = player(b, maxdepth=14, ab=True)
+		moves = p.selectMove()
+		print(f"{moves} - {p.score}\t time: {p.elapsedTime}\t nps: {p.nps}\t nodes: {p.totalNodes}")
