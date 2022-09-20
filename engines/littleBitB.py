@@ -111,52 +111,6 @@ class player(Engine):
 			random.shuffle(moves)
 		return moves
 
-	def checkMoves(self, position):
-		'''
-		Generate legal move list from bitboard position using board2.Board
-		Used for diagnosis. If there is a difference in the move list, one
-		of the engines has a problem.
-		'''
-		if not hasattr(self, 'x'):
-			self.x = 1
-		bd = self.board.initEmptyBoard()
-		bbLegalSqs = self.legalSquares
-		bdLegalSqs = self.board.FEN2Pos
-		blk, wht, kng, onM = position[0], position[1], position[2], position[3]
-		# iterate legal squares
-		for sq in range(32):
-			bbSq = bbLegalSqs[sq]
-			brdSq = bdLegalSqs[sq]
-			if bbSq & blk:
-				bd[brdSq] = self.board.BP
-				if bbSq & kng:
-					bd[brdSq] += 1
-			elif bbSq & wht:
-				bd[brdSq] = self.board.WP
-				if bbSq & kng:
-					bd[brdSq] += 1
-			else:
-				bd[brdSq] == self.board.EMPTY
-		
-		self.scratchBoard.position = bd
-		self.scratchBoard.onMove = onM
-		self.scratchBoard.getLegalMoves()
-		bitMoves = self.getMoves(position)
-
-		board2MoveList = self.scratchBoard.legalMoves2FEN(self.scratchBoard.legalMoves)
-		if bitMoves == None:
-			print(f"{self.x}. Bitmoves is empty list. Board2 says {board2MoveList}")
-			self.x+=1
-		else:
-			bitboardMoveList = [self.move2FEN(m[0]) for m in bitMoves]
-			bitboardMoveList.sort()
-			board2MoveList.sort()
-
-			if not (bitboardMoveList == board2MoveList):
-				print(f"BitBoard produced a different move list:")
-				print(position)
-				breakpoint()
-
 	def negaMax(self, position, depth, maxplayer, tmove=[], alpha=None, beta=None, parentNode=None):
 		'''
 		Find minmax's best move recursively until self.maxdepth
@@ -227,7 +181,10 @@ class player(Engine):
 			return v, best_move
 
 	def scorePosition(self, position):
-		# breakpoint()
+		'''
+		Return the difference in piece count from the perspective of the
+		mover. A king is twice the value of a man.
+		'''
 		pos = position[1]
 		bpCount = self.countSetBits(pos[0])
 		bpCount += self.countSetBits(pos[0] & pos[2])
@@ -294,12 +251,12 @@ class player(Engine):
 
 	def convPos2BB(self, fen=None):
 		'''
-		Convert board2.Board FEN string to bitboards
+		Return position bitboards from FEN string to
 		@return list: a list of 4 ints consisting of: 
-		0: bp (bit board of black pieces), 
-		1: rp (bitboard of red pieces), 
-		2: kings (bitboard of kings),
-		3: side on move (1 for black, -1 for white)
+			0: bp (bit board of black pieces), 
+			1: rp (bitboard of red pieces), 
+			2: kings (bitboard of kings),
+			3: side on move (1 for black, -1 for white)
 		'''
 		position  = [0, 0, 0, 0]
 		fenpos = self.board.pos2Fen() if fen==None else fen
@@ -375,18 +332,18 @@ class player(Engine):
 
 	def getNormalMoves(self, position, movers):
 		'''
-		Get non-jump moves and the resulting position
+		Returns a list of non-jump moves and the resulting position
 		from a bit board of movers
 		@ param position: list: [a, b, c, d] where:
 			a: black piece bit board
 			b: white piece bit board
 			c: king bit board
 			d: side to move, 1 = black; -1 = white
-		@ param movers: bin: bit board of non jump movers
-		@ return None
-		Appends to self.moves a tuple(a,b) where:
-			a: list of tuples (x, y), where x is the starting
-			positional bit of the piece and y is the landing square.
+		@ param movers: bin: bit board of non-jump movers
+		@ return list of tuple(a,b) where:
+			a: list of tuples (x, y), where 
+				x is list of ints starting square number of the piece
+				followed by y, the landing square number, both in FEN; 
 			b: list: the position resulting from the move in the same
 			format as the position param described above
 		'''
@@ -438,16 +395,25 @@ class player(Engine):
 		return moves
 
 	def getJumpMoves(self, position, jumpers):
+		'''
+		Returns a list of tuples in the same formate as the
+		getNormalMoves method, except the moves may contain
+		multiple landing squares as required by the jump.
+		'''
 		moves = []
 		self.jumps = []
 		while jumpers:
 			x = self.getFirstSetBitPosition(jumpers)
 			val_x = 2 ** x
-			moves.append(self.jumperRecurse(x, val_x, position))
+			moves.append(self._jumperRecurse(x, val_x, position))
 			jumpers -= val_x
 		return self.jumps
 
-	def jumperRecurse(self, jumper, jumperBB, position, jumps=[]):
+	def _jumperRecurse(self, jumper, jumperBB, position, jumps=[]):
+		'''
+		For the given jumper (jumerBB), sets self.jumps to a list of possible
+		jumping moves, including multiple jumps
+		'''
 		empty = self.emptySqs(position)
 		kings = position[2]
 		onMove = position[3]
@@ -505,15 +471,17 @@ class player(Engine):
 			self.jumps.append((jumps, position))
 
 	def printBoard(self, data):
+		# Print output of getBoardStr method
 		print(self.getBoardStr(data))
 
 	def getBoardStr(self, data):
 		"""
-		Print bitboard as human readable board
-		@ param data: int or list: if list of 4 ints, the current position 
+		return bitboard as human readable board
+		@ param: data: int or list: if list of 4 ints, the current position 
 		is displayed as pieces (b, r, B, R). 
 		Assuming list is [bp, rp, kings, onmove]
 		If int, the bitWord is displayed as 0s and 1s
+		@return: str: human readable checker board
 		"""
 		sq = 0
 		spacer = "  "
@@ -554,30 +522,28 @@ if __name__ == '__main__':
 	# pos = '[FEN "B:W22,30:BK18"]' #Not working. Tries to jump 30 off the board
 	# pos = '[FEN "W:W15:B10,1"]' #But this does work. w does not try to jump 1
 	# pos = '[FEN "B:W15:BK30"]' # Not working tries to move off board to 36
-	royalTour = [
-	    '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]', #14, 0
-	    '[FEN "B:W27,18,15,11,5,6,7:B25,26,28,17,20,9,10,2,3,4"]', #13, 1
-	    '[FEN "W:W27,18,11,5,6,7:B25,26,28,17,19,20,9,2,3,4"]', #12, 2
-	    '[FEN "B:W27,18,11,6,7,K1:B25,26,28,17,19,20,9,2,3,4"]', #11, 3
-	    '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]', #10, 4
-	    '[FEN "B:W27,18,6,8,K1:B25,26,28,17,19,20,9,10,2,4"]', #9, 5
-	    '[FEN "W:W27,18,6,K1:B25,26,28,17,19,20,9,10,11,2"]', #8, 6
-	    '[FEN "B:W24,18,6,K1:B25,26,28,17,19,20,9,10,11,2"]', #7, 7
-	    '[FEN "W:W18,6,K1:B25,26,27,28,17,19,9,10,11,2"]', #6, 8
-	    '[FEN "B:W14,6,K1:B25,26,27,28,17,19,9,10,11,2"]', #5, 9
-	    '[FEN "W:W6,K1:B25,26,27,28,17,18,19,10,11,2"]', #4, 10
-	    '[FEN "B:WK5,6:B25,26,27,28,17,18,19,10,11,2"]', #3, 11
-	    '[FEN "W:WK5:B25,26,27,28,17,18,19,9,10,11"]', #2, 12
-	    '[FEN "B:WK32:B28"]' #1, 13
-	]
-	pos = '[FEN "W:W18,6,K1:B25,26,27,28,17,19,9,10,11,2"]'
-	pos = '[FEN "B:W27,18,11,6,7,K1:B25,26,28,17,19,20,9,2,3,4"]'
-	pos = '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]'
-	pos = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
-	b = Board(pos)
+	# royalTour = [
+	#     '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]', #14, 0
+	#     '[FEN "B:W27,18,15,11,5,6,7:B25,26,28,17,20,9,10,2,3,4"]', #13, 1
+	#     '[FEN "W:W27,18,11,5,6,7:B25,26,28,17,19,20,9,2,3,4"]', #12, 2
+	#     '[FEN "B:W27,18,11,6,7,K1:B25,26,28,17,19,20,9,2,3,4"]', #11, 3
+	#     '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]', #10, 4
+	#     '[FEN "B:W27,18,6,8,K1:B25,26,28,17,19,20,9,10,2,4"]', #9, 5
+	#     '[FEN "W:W27,18,6,K1:B25,26,28,17,19,20,9,10,11,2"]', #8, 6
+	#     '[FEN "B:W24,18,6,K1:B25,26,28,17,19,20,9,10,11,2"]', #7, 7
+	#     '[FEN "W:W18,6,K1:B25,26,27,28,17,19,9,10,11,2"]', #6, 8
+	#     '[FEN "B:W14,6,K1:B25,26,27,28,17,19,9,10,11,2"]', #5, 9
+	#     '[FEN "W:W6,K1:B25,26,27,28,17,18,19,10,11,2"]', #4, 10
+	#     '[FEN "B:WK5,6:B25,26,27,28,17,18,19,10,11,2"]', #3, 11
+	#     '[FEN "W:WK5:B25,26,27,28,17,18,19,9,10,11"]', #2, 12
+	#     '[FEN "B:WK32:B28"]' #1, 13
+	# ]
+	# pos = '[FEN "W:W18,6,K1:B25,26,27,28,17,19,9,10,11,2"]'
+	# pos = '[FEN "B:W27,18,11,6,7,K1:B25,26,28,17,19,20,9,2,3,4"]'
+	# pos = '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]'
+	# pos = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
+	b = Board()
 	print(b.printBoard())
-
-	for i in range(25):
-		p = player(b, maxdepth=14, ab=True)
-		moves = p.selectMove()
-		print(f"{moves} - {p.score}\t time: {p.elapsedTime}\t nps: {p.nps}\t nodes: {p.totalNodes}")
+	p = player(b, maxdepth=14, ab=True)
+	moves = p.selectMove()
+	# print(f"{moves} - {p.score}\t time: {p.elapsedTime}\t nps: {p.nps}\t nodes: {p.totalNodes}")
