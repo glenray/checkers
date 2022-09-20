@@ -464,7 +464,7 @@ class player(Engine):
 						continue	
 				# the new position after the jump with the same side to move before looking for another jump in the same move
 				newPosition = [newFriend, newEnemy, newKings, position[3]] if onMove == 1 else [newEnemy, newFriend, newKings, position[3]]
-				self.jumperRecurse(jumper+(shiftVal*2), landingSq, newPosition, newMoves)
+				self._jumperRecurse(jumper+(shiftVal*2), landingSq, newPosition, newMoves)
 		if newMoves == None and jumps:
 			# toogle onMove
 			position[3] = -position[3]
