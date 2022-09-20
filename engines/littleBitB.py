@@ -72,14 +72,14 @@ class player(Engine):
 		startTime = time.time()
 		moves = self.getMoves()
 		self.root = moveNode([None, self.convPos2BB(self.board.pos2Fen())]) if self.maketree else None
-		score, move = self.negaMax(moves, 0, -1, alpha=float("-inf"), beta=float("inf"), parentNode=self.root)
+		self.score, move, self.line = self.negaMax(moves, 0, -1, alpha=float("-inf"), beta=float("inf"), parentNode=self.root)
+
 		endTime = time.time()
 		self.elapsedTime = round(endTime - startTime, 2)
 		try:
 			self.nps = int(self.totalNodes/self.elapsedTime)
 		except ZeroDivisionError:
 			self.nps = "0 Error"
-		self.score = score
 		if move:
 			fenmove = self.move2FEN(move[0])
 		else:
@@ -111,7 +111,7 @@ class player(Engine):
 			random.shuffle(moves)
 		return moves
 
-	def negaMax(self, position, depth, maxplayer, tmove=[], alpha=None, beta=None, parentNode=None):
+	def negaMax(self, position, depth, maxplayer, line=[], tmove=None, alpha=None, beta=None, parentNode=None):
 		'''
 		Find minmax's best move recursively until self.maxdepth
 		@param position: list:  a list of tuples where each tuple is
@@ -135,10 +135,10 @@ class player(Engine):
 		# if depth, then return evaluation and the move
 		if self.maxdepth == depth:
 			score = -self.scorePosition(tmove) if maxplayer == 1 else self.scorePosition(tmove)
-			return score, None
+			return score, None, line
 		# if there are no moves in this position, game over
 		elif position == None or position == []:
-			return 100*maxplayer, None
+			return 100*maxplayer, None, line
 		# iterate moves from position
 		else:
 			for move in position:
@@ -150,11 +150,13 @@ class player(Engine):
 				else:
 					node = None
 				self.totalNodes += 1
-				# self.checkMoves(move[1])
-				v, placeholder = self.negaMax(
+				tempLine = copy.copy(line)
+				tempLine.append(move)
+				v, placeholder, PH_line = self.negaMax(
 					self.getMoves(move[1]), 
 					depth+1, 
 					-maxplayer,
+					tempLine,
 					move,
 					alpha, 
 					beta,
@@ -162,23 +164,24 @@ class player(Engine):
 				if maxplayer == -1:
 					if v > tempv:
 						best_move = move
+						best_line = PH_line
 					v = max(v, tempv)
 				else:
+					if v < tempv:
+						best_move = None
+						best_line = PH_line
 					v = min(v, tempv)
-					best_move = None
-
 				# pruning
 				if self.ab:
 					if maxplayer == -1:
 						if v >= beta:
-							return v, best_move
+							return v, best_move, best_line
 						alpha = max(alpha, v)
 					else:
 						if v <= alpha:
-							return v, None
+							return v, move, best_line
 						beta = min(beta, v)
-
-			return v, best_move
+			return v, best_move, best_line
 
 	def scorePosition(self, position):
 		'''
@@ -430,6 +433,7 @@ class player(Engine):
 			enemy = position[0]
 			menShift = operator.lshift 
 			kingShift = operator.rshift 
+		# shift empty squares on top of the enemy. Then shift that over the jumper.
 		men_vars = [
 			((menShift((menShift(empty, 4) & enemy), 4) & jumperBB), 4*onMove), 
 			((menShift((menShift(empty, 5) & enemy), 5) & jumperBB), 5*onMove),
@@ -544,6 +548,6 @@ if __name__ == '__main__':
 	# pos = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	b = Board()
 	print(b.printBoard())
-	p = player(b, maxdepth=14, ab=True)
+	p = player(b, maxdepth=5, ab=True)
 	moves = p.selectMove()
-	# print(f"{moves} - {p.score}\t time: {p.elapsedTime}\t nps: {p.nps}\t nodes: {p.totalNodes}")
+	print(f"{moves} - {p.score}\t time: {p.elapsedTime}\t nps: {p.nps}\t nodes: {p.totalNodes}")
