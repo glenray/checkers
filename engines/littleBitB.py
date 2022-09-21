@@ -40,8 +40,8 @@ class player(Engine):
 		"""
 		-- All squares work with shift 4 or 5.
 		-- This is the primary benefit over littleBitA arrangement.
-		-- bits 8, 17, 26, and 35 are padding (not legal squares)
-		to keep everything in line.
+		-- bits 8, 17, 26, 35, 36, 37, 38, 39 are padding 
+			(not legal squares) to keep everything in line.
 		__________________________
 		|   000   001   002   003|
 		|004   005   006   007   | 008
@@ -52,6 +52,7 @@ class player(Engine):
 		|   027   028   029   030|
 		|031   032   033   034   | 035
 		--------------------------
+		    036   037   038   039
 		"""
 	
 	# required by engine base class
@@ -366,13 +367,13 @@ class player(Engine):
 		)
 		while movers:
 			x = self.getFirstSetBitPosition(movers)
-			val = 2 ** x
+			val = 1 << x
 			shiftVar = men_shift+king_shift if (val & kings) else men_shift
 			for shift in shiftVar:
 				newfriend, newkings = friend, kings
 				if val & shift[0]:
-					lsop = operator.mul if shift[1]>0 else operator.floordiv 
-					landingSq = lsop(val, 2**abs(shift[1]))
+					lsop = operator.lshift if shift[1]>0 else operator.rshift 
+					landingSq = lsop(val, abs(shift[1]))
 					# toggle from square bit
 					newfriend = newfriend ^ val
 					# toggle landing bit
@@ -438,16 +439,16 @@ class player(Engine):
 			((menShift((menShift(empty, 4) & enemy), 4) & jumperBB), 4*onMove), 
 			((menShift((menShift(empty, 5) & enemy), 5) & jumperBB), 5*onMove),
 		]
-		king_vars = [
+		if jumperBB & kings:
+			men_vars = men_vars + [
 			((kingShift((kingShift(empty, 4) & enemy), 4) & jumperBB), -4*onMove), 
 			((kingShift((kingShift(empty, 5) & enemy), 5) & jumperBB), -5*onMove),
 		]
-		variations = men_vars + king_vars if jumperBB & kings else men_vars
-		for var in variations:
+		for var in men_vars:
 			if var[0]:
 				shiftVal = var[1]
-				landingSq = 2 ** (jumper+(shiftVal*2))
-				jumpedSq = 2 ** (jumper+shiftVal)
+				landingSq = 1 << (jumper+(shiftVal*2))
+				jumpedSq = 1 << (jumper+shiftVal)
 				newMoves = [jumper, jumper + (shiftVal*2)] if jumps==[] else jumps+[jumper+(shiftVal*2)]
 				newFriend = friend - jumperBB + landingSq
 				newEnemy = enemy - jumpedSq 
@@ -548,6 +549,6 @@ if __name__ == '__main__':
 	# pos = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	b = Board()
 	print(b.printBoard())
-	p = player(b, maxdepth=5, ab=True)
+	p = player(b, maxdepth=10, ab=True)
 	moves = p.selectMove()
 	print(f"{moves} - {p.score}\t time: {p.elapsedTime}\t nps: {p.nps}\t nodes: {p.totalNodes}")
