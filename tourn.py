@@ -96,7 +96,8 @@ class Tourn():
 if __name__ == "__main__" :
 	b = Board()
 	moron = engines.moron(b)
-	negamax = engines.negamax(b, maxdepth=8, ab=True)
-	littlebitB = engines.littlebitB(b, maxdepth=8, ab=True)
+	negamax = engines.negamax(b, maxdepth=4, ab=True)
+	littlebitB = engines.littlebitB(b, maxdepth=4, ab=True)
+	littlebitB2 = engines.littlebitB(b, maxdepth=8, ab=True)
 
-	Tourn(board=b, bp=moron, rp=littlebitB, n=10)
+	Tourn(board=b, bp=littlebitB2, rp=littlebitB, n=50)

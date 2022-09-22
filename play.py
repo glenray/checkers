@@ -96,7 +96,7 @@ def main():
 	pos = '[FEN "W:W27,18,11,6,K1:B25,26,28,17,19,20,9,10,2,4"]'
 	b = Board()
 	wp = engines.negamax(b, maxdepth=4, ab=True)
-	bp = engines.littlebitB(b, maxdepth=8, ab=True)
+	bp = engines.littlebitB(b, maxdepth=4, ab=True)
 	Play(b, bp, wp)
 
 if __name__ == '__main__':

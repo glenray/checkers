@@ -328,7 +328,6 @@ class player(Engine):
 		return the position (0 based) of the right most set bit
 		@ param numb: bin: a 32 bit binary number (bitboard)  
 		@ return: int: 0 based position of right-most set bit. 
-		Conveniently, this +1 is the FEN square number.
 		From: https://btechgeeks.com/python-program-to-find-position-of-rightmost-set-bit/
 		'''
 		result_pos = math.log2(numb & -numb)
@@ -357,14 +356,14 @@ class player(Engine):
 		onMove = position[3]
 		friend = position[0] if onMove == 1 else position[1]
 		enemy = position[1] if onMove == 1 else position[0]
-		men_shift = (
-			(empty >> 4 if onMove == 1 else empty << 4, 4*onMove),
-			(empty >> 5 if onMove == 1 else empty << 5, 5*onMove),
-		)
-		king_shift = (
-			(empty << 4 if onMove == 1 else empty >> 4, -4*onMove),
-			(empty << 5 if onMove == 1 else empty >> 5, -5*onMove),	
-		)
+		empRS4, empLS4, empRS5, empLS5 = empty>>4, empty<<4, empty>>5, empty<<5
+		if onMove == 1:
+			men_shift = ((empRS4, 4*onMove), (empRS5, 5*onMove))
+			king_shift = ((empLS4, -4*onMove), (empLS5, -5*onMove))
+		else:
+			men_shift = ((empLS4, 4*onMove), (empLS5, 5*onMove))
+			king_shift = ((empRS4, -4*onMove), (empRS5, -5*onMove))
+
 		while movers:
 			x = self.getFirstSetBitPosition(movers)
 			val = 1 << x
@@ -374,14 +373,11 @@ class player(Engine):
 				if val & shift[0]:
 					lsop = operator.lshift if shift[1]>0 else operator.rshift 
 					landingSq = lsop(val, abs(shift[1]))
-					# toggle from square bit
-					newfriend = newfriend ^ val
-					# toggle landing bit
-					newfriend = newfriend ^ landingSq
-					# update king bitboard
+					# toggle from and landing square bits
+					newfriend = newfriend ^ val ^ landingSq
+					# if mover is king, update king bitboard
 					if val & kings:
-						newkings = newkings ^ val
-						newkings = newkings ^ landingSq
+						newkings = newkings ^ val ^ landingSq
 					# king promotion
 					if (landingSq & self.wht_king_row_mask) | (landingSq & self.blk_king_row_mask):
 						# mover is not already a king
