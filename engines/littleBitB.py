@@ -69,18 +69,24 @@ class player(Engine):
 		return f"{self._name}@d{self.maxdepth}"
 
 	def selectMove(self, position = None, moves = None):
+		'''
+		Return one move from the legal moves in the current position
+		@param position: str: the position in FEN notation
+		@param moves: list: a list of legal moves
+		@return: list: a list of ints representing the FEN square number
+		of the starting square followed by the landing squares.
+		'''
 		self.totalNodes = 0
 		startTime = time.time()
 		moves = self.getMoves()
 		self.root = moveNode([None, self.convPos2BB(self.board.pos2Fen())]) if self.maketree else None
 		self.score, move, self.line = self.negaMax(moves, 0, -1, alpha=float("-inf"), beta=float("inf"), parentNode=self.root)
-
 		endTime = time.time()
 		self.elapsedTime = round(endTime - startTime, 2)
 		try:
-			self.nps = int(self.totalNodes/self.elapsedTime)
+			self.nps = int(self.totalNodes/(endTime-startTime))
 		except ZeroDivisionError:
-			self.nps = "0 Error"
+			self.nps = "N/A"
 		if move:
 			fenmove = self.move2FEN(move[0])
 		else:
@@ -88,15 +94,26 @@ class player(Engine):
 		return fenmove
 
 	def move2FEN(self, move):
-		retval = []
-		for i in move:
-			try:
-				retval.append(self.bitpos2fen[i])
-			except:
-				breakpoint()
-		return retval
-
+		'''
+		Return a list of moves expressed in bit positions to FEN square numbers
+		@param move: a list of moves expressed in bit positions, i.e., a list 
+		returned by the getMoves method.
+		@return: list: a list of moves expressed in FEN square numbers.
+		'''
+		try:
+			return [self.bitpos2fen[i] for i in move]
+		except:
+			print("Something went wrong in the move2FEN method. Quitting.")
+			quit()
+		
 	def getMoves(self, position = None):
+		'''
+		Return a list of legal moves in the position
+		@param position: list: the position in bitboards
+		@return: a list of legal moves, starting with the current square
+		number of the moving man, followed by on or more landing squares.
+		NB: the square numbers are bit positions, NOT FEN.
+		'''
 		if position == None:
 			position = self.convPos2BB(self.board.pos2Fen())
 		jumpers = self.getJumpers(position)
