@@ -358,11 +358,11 @@ class player(Engine):
 		enemy = position[1] if onMove == 1 else position[0]
 		empRS4, empLS4, empRS5, empLS5 = empty>>4, empty<<4, empty>>5, empty<<5
 		if onMove == 1:
-			men_shift = ((empRS4, 4*onMove), (empRS5, 5*onMove))
-			king_shift = ((empLS4, -4*onMove), (empLS5, -5*onMove))
+			men_shift = ((empRS4, 4), (empRS5, 5))
+			king_shift = ((empLS4, -4), (empLS5, -5))
 		else:
-			men_shift = ((empLS4, 4*onMove), (empLS5, 5*onMove))
-			king_shift = ((empRS4, -4*onMove), (empRS5, -5*onMove))
+			men_shift = ((empLS4, -4), (empLS5, -5))
+			king_shift = ((empRS4, 4), (empRS5, 5))
 
 		while movers:
 			x = self.getFirstSetBitPosition(movers)
