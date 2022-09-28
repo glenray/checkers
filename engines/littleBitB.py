@@ -15,15 +15,15 @@ Translate board position to a bit board
 Glen Pritchard -- 9/8/2022
 '''
 class player(Engine):
-	def __init__(self, board, maxdepth=5, ab=False, randomize=True, maketree=False):
+	def __init__(self, board, maxtime=None, maxdepth=5, ab=False, randomize=True):
 		super(player, self).__init__(board)
 		self.scratchBoard = Board()
 		self._name = "littleBitB"
 		self._desc = "littleBitA with different bitboard pattern"
 		self.maxdepth = maxdepth
+		self.maxtime = maxtime
 		self.ab = ab
 		self.randomize = randomize
-		self.maketree = maketree
 		self.totalNodes = 0
 		# all squres and padding
 		self.S = tuple(2 ** i for i in range(36))
@@ -77,14 +77,13 @@ class player(Engine):
 		of the starting square followed by the landing squares.
 		'''
 		self.totalNodes = 0
-		startTime = time.time()
+		self.startTime = time.time()
 		moves = self.getMoves()
-		self.root = moveNode([None, self.convPos2BB(self.board.pos2Fen())]) if self.maketree else None
-		self.score, move, self.line = self.negaMax(moves, 0, -1, alpha=float("-inf"), beta=float("inf"), parentNode=self.root)
+		self.score, move, self.line = self.negaMax(moves, 0, -1, alpha=float("-inf"), beta=float("inf"))
 		endTime = time.time()
-		self.elapsedTime = round(endTime - startTime, 2)
+		self.elapsedTime = round(endTime - self.startTime, 2)
 		try:
-			self.nps = int(self.totalNodes/(endTime-startTime))
+			self.nps = int(self.totalNodes/(endTime-self.startTime))
 		except ZeroDivisionError:
 			self.nps = "N/A"
 		if move:
@@ -129,7 +128,7 @@ class player(Engine):
 			random.shuffle(moves)
 		return moves
 
-	def negaMax(self, position, depth, maxplayer, line=[], tmove=None, alpha=None, beta=None, parentNode=None):
+	def negaMax(self, position, depth, maxplayer, line=[], tmove=None, alpha=None, beta=None):
 		'''
 		Find minmax's best move recursively until self.maxdepth
 		@param position: list:  a list of tuples where each tuple is
@@ -161,12 +160,6 @@ class player(Engine):
 		else:
 			for move in position:
 				tempv = v
-				if parentNode:
-					node = moveNode(move)
-					parentNode.addChild(node)
-					node.move = self.move2FEN(move[0])
-				else:
-					node = None
 				self.totalNodes += 1
 				tempLine = copy.copy(line)
 				tempLine.append(move)
@@ -177,8 +170,7 @@ class player(Engine):
 					tempLine,
 					move,
 					alpha, 
-					beta,
-					node)
+					beta)
 				if maxplayer == -1:
 					if v > tempv:
 						best_move = move

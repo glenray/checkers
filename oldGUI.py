@@ -1,4 +1,8 @@
 '''
+Note: This uses the original nested 8x8 arrays used in the board.Board class.
+it is incompatible with the padded array used in board2.Board. The engines have
+all been converted to use board2, so this GUI is not longer useful for engine
+play.
 To Do:
 1. Create resizeable squares and pieces based on change in windows size
 2. Modify GUI.py to interface with board2 class with better board representation
@@ -161,7 +165,7 @@ class GUI:
 			if player == 'human':
 				return
 			# ask that player for a move
-			breakpoint()
+			# breakpoint()
 			move, _ = player.selectMove()
 			# if the player made a legal move
 			if move in self.board.legalMoves:
