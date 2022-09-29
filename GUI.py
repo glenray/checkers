@@ -2,14 +2,24 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import time
 import board2
+import engines
 from sqCanvas import sqCanvas
 
 class GUI:
-	def __init__(self, board=None):
+	# The odd row FEN squares used to calculate jumped squares.
+	ODD_ROW_SQUARES = (5,6,7,8,13,14,15,16,21,22,23,24,29,30,31,32)
+
+	def __init__(self, board, bp='human', wp='human'):
 		'''
 		@param board: board2.Board object
+		@param bp: str or engine object: "human" to let human play the
+		black side or an engine instance
+		@param wp: str or engine object: "human" to let human play the
+		white side or an engine instance
 		'''
 		self.board = board
+		self.bp = bp
+		self.wp = wp
 		self.boardSize = 400
 		self.lightColorSq = "yellow"
 		self.darkColorSq = "blue"
@@ -18,11 +28,13 @@ class GUI:
 		self.darkSquares = []	# list of ids for dark squares
 		self.sqLabels = []		# list of ids for dark square number labels
 		self.MiP = None			# for human moves in progress
+		self.isRunning = True
 
 		self.createWidgets()
 		self.createCanvasObjects()
 		self.positionCanvasObjects()
-		self.drawPieces()		
+		self.drawPieces()
+		self.makeMove()	
 		self.root.mainloop()
 
 
@@ -89,7 +101,16 @@ class GUI:
 
 
 	def makeMove(self):
-		pass
+		while self.isRunning == True:
+			self.board.getLegalMoves()
+			if len(self.board.legalMoves) == 0: break
+			player = self.bp if self.board.onMove == 1 else self.wp
+			if type(player) == str:
+				return
+			move = player.selectMove()
+			if move in self.board.legalMoves2FEN():
+				self.board.makeMove(move)
+				self.updateGUI(move)
 
 
 	def humanMove(self, pos):
@@ -133,16 +154,17 @@ class GUI:
 
 
 	def updateGUI(self, move):
+		'''
+		Update the men and kings on the board to reflect a move
+		@param move: list: list of ints representing the FEN square numbers or a move
+		'''
 		self.pieceAnimate(move)
 		# remove jumped pieces
-		# finding the jumped piece depends on whether to start sq and
-		# landing sq are in even odd rows or even rows
-		evenJumpers = (5,6,7,8,13,14,15,16,21,22,23,24,29,30,31,32)
 		if abs(move[0] - move[1]) > 5:
 			for i, sq in enumerate(move):
 				# the starting piece has been moved to landing square already
 				if i == 0: continue
-				jumpSq = (sq + move[i-1])//2 if sq in evenJumpers else (sq + move[i-1]+1)//2
+				jumpSq = (sq + move[i-1])//2 if sq in GUI.ODD_ROW_SQUARES else (sq + move[i-1]+1)//2
 				self.canvas.delete(self.returnPiece(jumpSq))
 		# promote to king
 		end = move[-1]
@@ -152,14 +174,15 @@ class GUI:
 
 
 	def pieceAnimate(self, move):
+		'''
+		Move piece from starting square to landing square in increments
+		@param move: list: list of ints representing a move
+		'''
 		startCoords = self.canvas.coords(self.darkSquares[move[0] - 1])
 		endCoords = self.canvas.coords(self.darkSquares[move[-1] - 1])
 		difX = endCoords[0]-startCoords[0]
 		difY = endCoords[1]-startCoords[1]
-		# breakpoint()
-
 		pieceId = self.returnPiece(move[0])
-		# move piece from starting square to landing square in increments
 		counter = 0
 		inc = 15
 		while counter < inc:
@@ -170,6 +193,10 @@ class GUI:
 
 
 	def returnPiece(self, sqNo):
+		'''
+		Return the canvas id number of the man on sqNo
+		@param sqNo: int: FEN square number where you want to find the piece
+		'''
 		sqCoor = self.canvas.coords(self.darkSquares[sqNo-1])
 		sqItems = self.canvas.find_enclosed(
 			sqCoor[0],
@@ -272,4 +299,5 @@ if __name__ == '__main__':
 	rt = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	jumpers = '[FEN "B:W18,26,27,25,11,19:BK15,K14"]'
 	b = board2.Board()
-	GUI(b)
+	e = engines.littlebitB(b, maxdepth=7, ab=True)
+	GUI(b, bp=e)
