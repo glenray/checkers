@@ -90,6 +90,7 @@ class GUI:
 	def makeMove(self):
 		pass
 
+
 	def humanMove(self, pos):
 		'''
 		Let humans make a move with mouse click on the board
@@ -131,28 +132,27 @@ class GUI:
 
 	def updateGUI(self, move):
 		self.pieceAnimate(move)
-	
-
-	def returnPiece(self, coord):
-		pass
+		# remove jumped pieces
+		if abs(move[0] - move[1]) > 5:
+			for i, sq in enumerate(move):
+				# the starting piece has been moved to landing square already
+				if i == 0: continue
+				jumpSq = (sq + move[i-1])//2
+				self.canvas.delete(self.returnPiece(jumpSq))
+		# promote to king
+		end = move[-1]
+		if end in (1,2,3,4,29,30,31,32):
+			piece = self.returnPiece(end)
+			self.canvas.itemconfigure(piece, outline="white", width=2)
 
 
 	def pieceAnimate(self, move):
-		startSqId = move[0] - 1
-		endSqId = move[-1] - 1
-		startCoords = self.canvas.coords(self.darkSquares[startSqId])
-		endCoords = self.canvas.coords(self.darkSquares[endSqId])
-		difY = startCoords[1]-endCoords[1]
+		startCoords = self.canvas.coords(self.darkSquares[move[0] - 1])
+		endCoords = self.canvas.coords(self.darkSquares[move[-1] - 1])
+		# breakpoint()
 		difX = startCoords[0]-endCoords[0]
-		sqItems = self.canvas.find_enclosed(
-			startCoords[0],
-			startCoords[1],
-			startCoords[0]+(self.boardSize/8),
-			startCoords[1]+(self.boardSize/8)
-		)
-		pieceId = sqItems[-1]
-
-
+		difY = startCoords[1]-endCoords[1]
+		pieceId = self.returnPiece(move[0])
 		# move piece from starting square to landing square in increments
 		counter = 0
 		inc = 15
@@ -160,9 +160,19 @@ class GUI:
 			self.canvas.move(pieceId, difY/inc, difX/inc)
 			counter += 1
 			self.root.update()
-			time.sleep(.02)
+		time.sleep(.02)
 
 
+	def returnPiece(self, sqNo):
+		sqCoor = self.canvas.coords(self.darkSquares[sqNo-1])
+		sqItems = self.canvas.find_enclosed(
+			sqCoor[0],
+			sqCoor[1],
+			sqCoor[0]+(self.boardSize/8),
+			sqCoor[1]+(self.boardSize/8)
+		)
+		# return the top level object id
+		return sqItems[-1]
 
 
 	def highlightSquares(self, FENSqNoList):
@@ -253,5 +263,7 @@ class GUI:
 		self.drawPieces()
 		
 if __name__ == '__main__':
-	b = board2.Board('[FEN "B:W18,26,27,25,11,19:BK15,K14"]')
+	rt = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
+	jumpers = '[FEN "B:W18,26,27,25,11,19:BK15,K14"]'
+	b = board2.Board(rt)
 	GUI(b)
