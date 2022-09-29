@@ -32,6 +32,7 @@ class GUI:
 		self.root.title("Glen's Checkers")
 		self.root.bind("<Escape>", lambda e: self.root.destroy())
 		self.root.geometry(f"{self.boardSize*2}x{self.boardSize*2}")
+		self.root.bind("B", lambda x: breakpoint())
 
 		# Paned Window
 		self.pWindow = ttk.PanedWindow(self.root, orient="horizontal")
@@ -108,6 +109,7 @@ class GUI:
 		# if only 1 move is left, make it
 		if len(moveMatches) == 1:
 			self.board.makeMove(moveMatches[0])
+			print(self.board.printBoard())
 			self.unHighLightSquares()
 			self.MiP = None
 			self.updateGUI(moveMatches[0])
@@ -133,11 +135,14 @@ class GUI:
 	def updateGUI(self, move):
 		self.pieceAnimate(move)
 		# remove jumped pieces
+		# finding the jumped piece depends on whether to start sq and
+		# landing sq are in even odd rows or even rows
+		evenJumpers = (5,6,7,8,13,14,15,16,21,22,23,24,29,30,31,32)
 		if abs(move[0] - move[1]) > 5:
 			for i, sq in enumerate(move):
 				# the starting piece has been moved to landing square already
 				if i == 0: continue
-				jumpSq = (sq + move[i-1])//2
+				jumpSq = (sq + move[i-1])//2 if sq in evenJumpers else (sq + move[i-1]+1)//2
 				self.canvas.delete(self.returnPiece(jumpSq))
 		# promote to king
 		end = move[-1]
@@ -149,15 +154,16 @@ class GUI:
 	def pieceAnimate(self, move):
 		startCoords = self.canvas.coords(self.darkSquares[move[0] - 1])
 		endCoords = self.canvas.coords(self.darkSquares[move[-1] - 1])
+		difX = endCoords[0]-startCoords[0]
+		difY = endCoords[1]-startCoords[1]
 		# breakpoint()
-		difX = startCoords[0]-endCoords[0]
-		difY = startCoords[1]-endCoords[1]
+
 		pieceId = self.returnPiece(move[0])
 		# move piece from starting square to landing square in increments
 		counter = 0
 		inc = 15
 		while counter < inc:
-			self.canvas.move(pieceId, difY/inc, difX/inc)
+			self.canvas.move(pieceId, difX/inc, difY/inc)
 			counter += 1
 			self.root.update()
 		time.sleep(.02)
@@ -265,5 +271,5 @@ class GUI:
 if __name__ == '__main__':
 	rt = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	jumpers = '[FEN "B:W18,26,27,25,11,19:BK15,K14"]'
-	b = board2.Board(rt)
+	b = board2.Board()
 	GUI(b)
