@@ -130,7 +130,6 @@ class GUI:
 		# if only 1 move is left, make it
 		if len(moveMatches) == 1:
 			self.board.makeMove(moveMatches[0])
-			print(self.board.printBoard())
 			self.unHighLightSquares()
 			self.MiP = None
 			self.updateGUI(moveMatches[0])
@@ -298,6 +297,6 @@ class GUI:
 if __name__ == '__main__':
 	rt = '[FEN "W:W27,19,18,11,7,6,5:B28,26,25,20,17,10,9,4,3,2"]'
 	jumpers = '[FEN "B:W18,26,27,25,11,19:BK15,K14"]'
-	b = board2.Board()
-	e = engines.littlebitB(b, maxdepth=7, ab=True)
-	GUI(b, bp=e)
+	b = board2.Board(rt)
+	e = engines.littlebitB(b, maxdepth=13, randomize=False, ab=True)
+	GUI(b, wp=e)
